@@ -3,10 +3,12 @@ import viteLogo from '/vite.svg'
 import './App.css'
 import { useEffect, useState } from 'react'
 import Keyboard from './Keyboard.tsx'
-import { BrowserRouter, Routes, Route } from 'react-router';
+import { Routes, Route } from 'react-router';
+
 
 // Pages
 import Home from './pages/Home';
+import Rhythm from './pages/Rhythm';
 
 import './App.css';
 
@@ -14,6 +16,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/rhythm" element={<Rhythm />} />
     </Routes>
   );
 }
