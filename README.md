@@ -1,5 +1,11 @@
 # deus: A Music Training Tool
 
+## Group members
+- Audrey Au
+- Kevin Chang
+- Jonathan Pham
+- Julia Yang
+
 ## Inspiration
 All four of our members grew up with different musical backgrounds, from band and orchestra to theater. Music has had a large influence on our childhoods, so we see the importance of keeping it alive and passing this on to the next generation. With our website, we hope that kids or adults will all be able to continue to explore music in an accessible and fun way.  
 
