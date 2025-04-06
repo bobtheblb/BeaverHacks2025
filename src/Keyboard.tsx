@@ -90,6 +90,7 @@ function Keyboard() {
         {/* Black keys */}
         {black_key_xs.map((x, index) => {
           const noteSharp = ["C#", "D#", "F#", "G#", "A#"][index];
+          const keyLetter = ['w', 'e', 't', 'y', 'u'][index];
 
           return (
             <React.Fragment key={`black-${index}`}>
@@ -98,7 +99,7 @@ function Keyboard() {
                 y={black_key_start_y}
                 width={black_key_width}
                 height={black_key_height}
-                fill={pressedKeys[noteSharp.toLowerCase()] ? "gray" : black_key_fill} // Change color on press
+                fill={pressedKeys[keyLetter] ? "#1e1e1e" : black_key_fill}
                 stroke={black_key_stroke}
                 strokeWidth={black_key_stroke_width}
               />
@@ -116,6 +117,7 @@ function Keyboard() {
             </React.Fragment>
           );
         })}
+
       </Layer>
     </Stage>
   );
