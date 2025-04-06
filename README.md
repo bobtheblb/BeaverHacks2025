@@ -1,54 +1,38 @@
-# React + TypeScript + Vite
+# deus: A Music Training Tool
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Group members
+- Audrey Au
+- Kevin Chang
+- Jonathan Pham
+- Julia Yang
 
-Currently, two official plugins are available:
+## Inspiration
+All four of our members grew up with different musical backgrounds, from band and orchestra to theater. Music has had a large influence on our childhoods, so we see the importance of keeping it alive and passing this on to the next generation. With our website, we hope that kids or adults will all be able to continue to explore music in an accessible and fun way.  
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## What it does
+A website to learn how to read sheet music and rhythms. You can play piano notes with your keyboard while following sheet music. It gives you feedback on how well you’re doing using Google Gemini. There is also a rhythm trainer function that tests your sightreading skills and your inner rhythm.
 
-## Expanding the ESLint configuration
+## How we built it
+We used a basic stack, mainly React. We loaded MusicXML files locally for the nursery rhymes and implemented a custom function to dynamically generate music measures.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Challenges we ran into
+We ran into front-end issues trying to wrangle musical notation into our website. In addition, we had timing issues when registering keyboard input and the time that the beat/note was outputted to the screen.
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## Accomplishments that we're proud of
+It was all of our first hackathon ever at Oregon State University. Our team had very little experience in ideating and producing an idea in such a short amount of time. One of the main goals that we had in mind was to simply enjoy the process and have fun. We’re proud to say that we did!
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## What we learned
+During this hackathon, we used many tools and APIs that we had never seen before. We spent a lot of time researching different libraries to find what the best fit was and also combing through documentation to understand how to properly use them. In school, this is something we don’t usually deal with, as we are given specific APIs and libraries to use. Being able to do the research ourselves, and even go through trial and error, has helped build up skills that we can use in the workplace. 
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## What's next for deus
+We would love to continue working on this project in the future! While coding it together, we’ve continued to come up with new ideas and features that could help enhance user experience. Eventually, we would love to be able to deploy this website for other people to use. 
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+
+
+
+
+
+
+
+
+
