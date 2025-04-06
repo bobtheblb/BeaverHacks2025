@@ -4,15 +4,20 @@ import * as Tone from 'tone';
 import Keyboard from '../Keyboard.tsx'; 
 
 export function SheetMusicOSMD() {
-  const [selectedFile, setSelectedFile] = useState<string>('/twinkle.musicxml');
+  const [selectedFile, setSelectedFile] = useState<string>(() => {
+    return localStorage.getItem('selectedSheetMusic') || '/twinkle.musicxml';
+  });
   const [musicXML, setMusicXML] = useState<string | null>(null);
   const osmdContainerRef = useRef<HTMLDivElement>(null);
   const osmdInstance = useRef<OpenSheetMusicDisplay.OpenSheetMusicDisplay | null>(null);
 
   const [isMetronomeActive, setIsMetronomeActive] = useState(false);
+  const [isMetronomeActive2, setIsMetronomeActive2] = useState(false);
+
   const [tempo, setTempo] = useState(120); // Default tempo for metronome
   const [heldNotes, setHeldNotes] = useState<string[]>([]);
   const [octave, setOctave] = useState(4); // Default octave
+  const [isSongPlaying, setIsSongPlaying] = useState(false); // Track song playback state
 
   const keyToNoteMap = {
     a: `C${octave}`,
@@ -80,8 +85,8 @@ export function SheetMusicOSMD() {
 
   console.log(twinkle);
 
-  // Function to play the song
   const playSong = async () => {
+    setIsSongPlaying(true);
     // Ensure Tone.js is started
     await Tone.start();
 
@@ -92,7 +97,7 @@ export function SheetMusicOSMD() {
       metronome.triggerAttackRelease('C1', '8n');
       beatCount++;
       if (beatCount === 5) {
-        if (!isMetronomeActive) {
+        if (!isMetronomeActive2) {
           clearInterval(metronomeInterval); // Stop the metronome after 4 beats
         }
         startSong(); // Start playing the song after 4 beats
@@ -110,8 +115,16 @@ export function SheetMusicOSMD() {
         synth.triggerAttackRelease(note, duration);
         await new Promise(resolve => setTimeout(resolve, Tone.Time(duration).toMilliseconds()));
       }
+      setIsSongPlaying(false); // Song finished or stopped
       clearInterval(metronomeInterval);
     };
+  };
+
+  const stopSong = () => {
+    Tone.Transport.stop(); // Stop the transport to halt any ongoing playback
+    Tone.context.close(); // Optionally stop Tone.js context (disabling audio)
+    setIsSongPlaying(false);
+    window.location.reload();
   };
 
   // Metronome setup
@@ -236,6 +249,14 @@ export function SheetMusicOSMD() {
     }
   };
 
+  useEffect(() => {
+    const metronome = new Tone.MembraneSynth().toDestination();
+    transport.scheduleRepeat(() => {
+      metronome.triggerAttackRelease('C1', '8n');
+    }, '4n');
+  }, []);
+
+
   return (
     <div className="max-w-full mx-auto px-4 py-8 flex flex-col sm:flex-row overflow-hidden">
       {/* Sheet music container */}
@@ -258,11 +279,11 @@ export function SheetMusicOSMD() {
           </select>
         </div>
 
-        <div className="mb-4">
+        <div className="mb-4 flex items-center space-x-4">
           <button
-            onClick={playSong}
+            onClick={isSongPlaying ? stopSong : playSong}
             style={{
-              backgroundColor: '#32cd32',
+              backgroundColor: isSongPlaying ? '#ff6347' : '#32cd32',
               color: 'white',
               padding: '10px 20px',
               fontSize: '16px',
@@ -271,18 +292,16 @@ export function SheetMusicOSMD() {
               cursor: 'pointer',
             }}
           >
-            Play Song
+            {isSongPlaying ? 'Stop Song' : 'Play Song'}
           </button>
-          
-          {/* Metronome checkbox */}
-          <label className="ml-4 text-lg font-semibold flex items-center">
+          <label className="flex items-center text-lg font-semibold">
             <input
               type="checkbox"
-              checked={isMetronomeActive}
-              onChange={() => setIsMetronomeActive(prev => !prev)}
+              checked={isMetronomeActive2}
+              onChange={() => setIsMetronomeActive2(prev => !prev)}
               className="mr-2"
             />
-            Metronome
+            Metronome On
           </label>
         </div>
 
@@ -308,16 +327,17 @@ export function SheetMusicOSMD() {
           <button
             onClick={toggleMetronome}
             style={{
-              backgroundColor: '#32cd32',  // Always green (metronome start button)
+              backgroundColor: isMetronomeActive ? '#ff6347' : '#32cd32',
               color: 'white',
               padding: '10px 20px',
               fontSize: '16px',
               border: 'none',
               borderRadius: '5px',
               cursor: 'pointer',
+              transition: 'background-color 0.3s ease',
             }}
           >
-            Start Metronome
+            {isMetronomeActive ? 'Stop Metronome' : 'Start Metronome'}
           </button>
         </div>
 
@@ -345,7 +365,6 @@ export function SheetMusicOSMD() {
             onChange={handleTempoChange}
             className="w-full"
           />
-          <span className="ml-2">{tempo} BPM</span>
         </div>
       </div>
     </div>
