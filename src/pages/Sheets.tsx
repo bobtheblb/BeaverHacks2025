@@ -28,12 +28,15 @@ export function SheetMusicOSMD() {
   const [isCoachingActive, setIsCoachingActive] = useState(false)
   const [coachingStart, setCoachingStart] = useState(0)
   const coachingStartRef = useRef<number | null>(null);
+  const startCoachingTimerRef = useRef(false);
   const iouListRef = useRef([]);
   const noteHistoryRef = useRef([]);
   const [avgIou, setAvgIou] = useState(0.0);
   const [accuracy, setAccuracy] = useState(0.0);
   const [showMetrics, setShowMetrics] = useState(false);
   const [isSongPlaying, setIsSongPlaying] = useState(false); // Track song playback state
+  const formattedNotesRef = useRef([]);
+  const [numBeats, setNumBeats] = useState(0);
 
   const keyToNoteMap = {
     a: `C${octave}`,
@@ -58,9 +61,9 @@ export function SheetMusicOSMD() {
     time?: string; // Optional, if you want to add time calculations
   }
 
-  const formattedNotes: Note[] = [];
   let currentTime1 = 0;
   const millisecondsPerBeat1 = (60 / tempo) * 1000; // BPM to milliseconds per beat conversion
+  console.log(`ms per beat: ${millisecondsPerBeat1}`)
 
   // Based on selected song, update the notes
   const songData = {
@@ -72,78 +75,92 @@ export function SheetMusicOSMD() {
   };
 
   const notesToUse = songData[song] || mary;  // Default to mary if no song is found
-  notesToUse.forEach((item) => {
-    // Handle rest (pitch is null)
-    if (item.pitch === null) {
-        let duration = '';
-        if (item.duration === "60") {
-            duration = '8n'; // Eighth rest
-        } else if (item.duration === "120") {
-            duration = '4n'; // Quarter rest
-        } else if (item.duration === "180") {
-            duration = '4n.'; // Quarter half rest
-        } else if (item.duration === "240") {
-            duration = '2n'; // Half rest
-        }
-        
-        const restDuration = duration === '8n' ? 1 / 8 :
-                             duration === '4n' ? 1 / 4 :
-                             duration === '2n' ? 1 / 2 : 1;
-        
-        const time = currentTime1;
-        currentTime1 += restDuration * 4 * millisecondsPerBeat1;  // Update the time
-        formattedNotes.push({ note: 'rest', duration, time: `${time}`, durationMs: `${restDuration * 4 * millisecondsPerBeat1}`});
-    }else {
-      // Handle regular notes
-      const note = `${item.pitch.step}${item.pitch.octave}`;
-      let duration = '';
-      let noteDuration = 0;
-  
-      // Set the note duration based on item.type
-      if (item.type === 'eighth') {
-          duration = '8n';
-          noteDuration = 1 / 8;
-      } else if (item.type === 'quarter') {
-          if (item.dot) { // Dotted quarter note
-              duration = '4n.';
-              noteDuration = (1 / 4) * 1.5; // 3/8
-          } else {
-              duration = '4n';
-              noteDuration = 1 / 4;
+
+  updateMusic();
+
+  useEffect(() => {
+    console.log("tempo changed");
+    updateMusic();
+  }, [tempo]);
+
+  function updateMusic() {
+    formattedNotesRef.current = []
+    console.log("updating music")
+    notesToUse.forEach((item) => {
+      // Handle rest (pitch is null)
+      if (item.pitch === null) {
+          let duration = '';
+          if (item.duration === "60") {
+              duration = '8n'; // Eighth rest
+          } else if (item.duration === "120") {
+              duration = '4n'; // Quarter rest
+          } else if (item.duration === "180") {
+              duration = '4n.'; // Quarter half rest
+          } else if (item.duration === "240") {
+              duration = '2n'; // Half rest
           }
-      } else if (item.type === 'half') {
-          duration = '2n';
-          noteDuration = 1 / 2;
-      } else if (item.type === 'whole') {
-          duration = '1n';
-          noteDuration = 1;
-      } else if (item.type === 'dotted-quarter') {
-          duration = '4n.';
-          noteDuration = (1 / 4) * 1.5; // 3/8
-      } else if (item.type === 'dotted-half') {
-        duration = '2n.';
-        noteDuration = (1 / 2) * 1.5;
+          
+          const restDuration = duration === '8n' ? 1 / 8 :
+                              duration === '4n' ? 1 / 4 :
+                              duration === '2n' ? 1 / 2 : 1;
+          
+          const time = currentTime1;
+          currentTime1 += restDuration * 4 * millisecondsPerBeat1;  // Update the time
+          formattedNotesRef.current.push({ note: 'rest', duration, time: `${time}`, durationMs: `${restDuration * 4 * millisecondsPerBeat1}`});
+      }else {
+        // Handle regular notes
+        const note = `${item.pitch.step}${item.pitch.octave}`;
+        let duration = '';
+        let noteDuration = 0;
+    
+        // Set the note duration based on item.type
+        if (item.type === 'eighth') {
+            duration = '8n';
+            noteDuration = 1 / 8;
+        } else if (item.type === 'quarter') {
+            if (item.dot) { // Dotted quarter note
+                duration = '4n.';
+                noteDuration = (1 / 4) * 1.5; // 3/8
+            } else {
+                duration = '4n';
+                noteDuration = 1 / 4;
+            }
+        } else if (item.type === 'half') {
+            duration = '2n';
+            noteDuration = 1 / 2;
+        } else if (item.type === 'whole') {
+            duration = '1n';
+            noteDuration = 1;
+        } else if (item.type === 'dotted-quarter') {
+            duration = '4n.';
+            noteDuration = (1 / 4) * 1.5; // 3/8
+        } else if (item.type === 'dotted-half') {
+          duration = '2n.';
+          noteDuration = (1 / 2) * 1.5;
+        }
+
+        // Calculate time
+        const time = currentTime1;
+        currentTime1 += noteDuration * 4 * millisecondsPerBeat1;
+    
+        // Push to formattedNotes
+        console.log(`ms per beat2: ${millisecondsPerBeat1}`)
+        formattedNotesRef.current.push({ note, duration, time: `${time}`, durationMs: `${noteDuration * 4 * millisecondsPerBeat1}` });
       }
 
-      // Calculate time
-      const time = currentTime1;
-      currentTime1 += noteDuration * 4 * millisecondsPerBeat1;
-  
-      // Push to formattedNotes
-      formattedNotes.push({ note, duration, time: `${time}`, durationMs: `${noteDuration * 4 * millisecondsPerBeat1}` });
-    }
-  });
+    });
 
-
-  console.log(formattedNotes);
+    // console.log(`aboutta poop: ${JSON.stringify(formattedNotesRef.current)}`);
+  }
 
   function calculateIou(start, end) {
+    // console.log(`im pooping my pants rn: ${JSON.stringify(formattedNotesRef.current)}`);
     var true_note;
     var true_i;
-    for (let i = 0; i < formattedNotes.length; i++) {
-      let note = formattedNotes[i];
+    for (let i = 0; i < formattedNotesRef.current.length; i++) {
+      let note = formattedNotesRef.current[i];
       if (start < note.time) {
-        true_note = formattedNotes[i-1];
+        true_note = formattedNotesRef.current[i-1];
         true_i = i-1
         break;
       }
@@ -151,10 +168,10 @@ export function SheetMusicOSMD() {
 
     var next_note;
     var next_i;
-    for (let i = 0; i < formattedNotes.length; i++) {
-      let note = formattedNotes[i];
+    for (let i = 0; i < formattedNotesRef.current.length; i++) {
+      let note = formattedNotesRef.current[i];
       if (end < note.time) {
-        next_note = formattedNotes[i-1];
+        next_note = formattedNotesRef.current[i-1];
         next_i = i-1
         break;
       }
@@ -162,7 +179,7 @@ export function SheetMusicOSMD() {
 
     let true_notes = [];
     for (let i = true_i; i <= next_i; i++) {
-      true_notes.push(formattedNotes[i]);
+      true_notes.push(formattedNotesRef.current[i]);
     }
 
     let ious = [];
@@ -238,8 +255,8 @@ export function SheetMusicOSMD() {
     let count_total = 0;
     let current_j = 0;
     for (let i = 0; i < noteHistory.length; i++) {
-      let true_curr_note = formattedNotes[current_j].note;
-      if (current_j < formattedNotes.length) {
+      let true_curr_note = formattedNotesRef.current[current_j].note;
+      if (current_j < formattedNotesRef.current.length) {
         if (noteHistory[i].note == true_curr_note) {
           count_correct += 1;
           count_total += 1;
@@ -304,8 +321,8 @@ export function SheetMusicOSMD() {
       // Create a synth to play the notes
       const synth = new Tone.Synth().toDestination();
       // Play the song
-      for (let i = 0; i < formattedNotes.length; i++) {
-        const { note, duration } = formattedNotes[i];
+      for (let i = 0; i < formattedNotesRef.current.length; i++) {
+        const { note, duration } = formattedNotesRef.current[i];
         console.log(duration);
 
         // Skip if the note is a rest
@@ -389,6 +406,12 @@ export function SheetMusicOSMD() {
       const note = keyToNoteMap[key];
 
       if (note && !activeSynths.current[key]) {
+        if (startCoachingTimerRef.current == true) {
+          console.log("starting coaching timer");
+          coachingStartRef.current = Date.now();
+          startCoachingTimerRef.current = false;
+        }
+
         const synth = new Tone.Synth().toDestination();
         synth.triggerAttack(note);
         activeSynths.current[key] = synth;
@@ -406,7 +429,7 @@ export function SheetMusicOSMD() {
         const start = pressStartTimes.current[key];
         if (start) {
           const duration = Date.now() - start;
-          const coachingStartTime = coachingStartRef.current ? Date.now() - coachingStartRef.current : 0;
+          const coachingStartTime = coachingStartRef.current ? start - coachingStartRef.current : 0;
           console.log(`now: ${Date.now()}`)
           console.log(`coaching start: ${coachingStartRef.current}`)
           console.log(`poopy2: ${coachingStartTime}`)
@@ -467,7 +490,7 @@ export function SheetMusicOSMD() {
       setShowMetrics(true);
       setIsCoachingActive(false);
     } else {
-      coachingStartRef.current = Date.now()
+      startCoachingTimerRef.current = true
       iouListRef.current = [];
       noteHistoryRef.current = [];
       setAvgIou(0.0);
