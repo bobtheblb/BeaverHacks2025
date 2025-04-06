@@ -43,6 +43,7 @@ export function SheetMusicOSMD() {
     { label: 'When the Saints go Marching in', file: '/saints.musicxml' },
     { label: 'Mary Had a Little Lamb', file: '/mary.musicxml' },
     { label: 'Itsy Bitsy Spider', file: '/spider.musicxml' },
+    { label: 'Amazing Grace', file: '/amazing_grace.musicxml' },
   ];
 
   // Handle selection change (dropdown)
