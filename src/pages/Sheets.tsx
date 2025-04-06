@@ -335,7 +335,7 @@ export function SheetMusicOSMD() {
     for (let i = 0; i < noteHistory.length; i++) {
       let true_curr_note = formattedNotesRef.current[current_j].note;
       if (current_j < formattedNotesRef.current.length) {
-        if (noteHistory[i].note == true_curr_note) {
+        if (noteHistory[i].note[0] == true_curr_note[0]) {
           count_correct += 1;
           count_total += 1;
           current_j = current_j + 1;
