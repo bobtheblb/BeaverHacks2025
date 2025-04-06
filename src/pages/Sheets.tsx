@@ -54,6 +54,7 @@ export function SheetMusicOSMD() {
   interface Note {
     note: string;
     duration: string;
+    durationMs: string;
     time?: string; // Optional, if you want to add time calculations
   }
 
@@ -85,14 +86,13 @@ export function SheetMusicOSMD() {
             duration = '2n'; // Half rest
         }
         
-
         const restDuration = duration === '8n' ? 1 / 8 :
                              duration === '4n' ? 1 / 4 :
                              duration === '2n' ? 1 / 2 : 1;
         
         const time = currentTime1;
-        currentTime1 += restDuration * millisecondsPerBeat1;  // Update the time
-        formattedNotes.push({ note: 'rest', duration, time: `${time}` });
+        currentTime1 += restDuration * 4 * millisecondsPerBeat1;  // Update the time
+        formattedNotes.push({ note: 'rest', duration, time: `${time}`, durationMs: `${restDuration * 4 * millisecondsPerBeat1}`});
     }else {
       // Handle regular notes
       const note = `${item.pitch.step}${item.pitch.octave}`;
@@ -124,24 +124,13 @@ export function SheetMusicOSMD() {
         duration = '2n.';
         noteDuration = (1 / 2) * 1.5;
       }
-  
-      // Optional: Override noteDuration based on specific duration string
-      if (item.duration === "60") {
-          noteDuration *= 1;
-      } else if (item.duration === "120") {
-          noteDuration *= 2;
-      } else if (item.duration === "180") {
-          noteDuration *= 4;
-      } else if (item.duration === "240") {
-          noteDuration *= 8;
-      }
-  
+
       // Calculate time
       const time = currentTime1;
-      currentTime1 += noteDuration * millisecondsPerBeat1;
+      currentTime1 += noteDuration * 4 * millisecondsPerBeat1;
   
       // Push to formattedNotes
-      formattedNotes.push({ note, duration, time: `${time}` });
+      formattedNotes.push({ note, duration, time: `${time}`, durationMs: `${noteDuration * 4 * millisecondsPerBeat1}` });
     }
   });
 
@@ -151,10 +140,10 @@ export function SheetMusicOSMD() {
   function calculateIou(start, end) {
     var true_note;
     var true_i;
-    for (let i = 0; i < twinkle.length; i++) {
-      let note = twinkle[i];
+    for (let i = 0; i < formattedNotes.length; i++) {
+      let note = formattedNotes[i];
       if (start < note.time) {
-        true_note = twinkle[i-1];
+        true_note = formattedNotes[i-1];
         true_i = i-1
         break;
       }
@@ -162,10 +151,10 @@ export function SheetMusicOSMD() {
 
     var next_note;
     var next_i;
-    for (let i = 0; i < twinkle.length; i++) {
-      let note = twinkle[i];
+    for (let i = 0; i < formattedNotes.length; i++) {
+      let note = formattedNotes[i];
       if (end < note.time) {
-        next_note = twinkle[i-1];
+        next_note = formattedNotes[i-1];
         next_i = i-1
         break;
       }
@@ -173,7 +162,7 @@ export function SheetMusicOSMD() {
 
     let true_notes = [];
     for (let i = true_i; i <= next_i; i++) {
-      true_notes.push(twinkle[i]);
+      true_notes.push(formattedNotes[i]);
     }
 
     let ious = [];
@@ -181,10 +170,15 @@ export function SheetMusicOSMD() {
     for (let i = 0; i < true_notes.length; i++) {
       let true_note = true_notes[i];
       let true_start = true_note.time;
-      let true_end = true_note.time + true_note.durationMs;
+      console.log(`true note time: ${true_note.time}, duration: ${true_note.durationMs}`)
+      let true_end = parseFloat(true_note.time) + parseFloat(true_note.durationMs);
       let intersection = 0;
       let union = 0;
       let weight = 0;
+
+      console.log(`true start: ${true_start}, true_end: ${true_end}`)
+      console.log(`start: ${start}, end: ${end}`)
+
       if ((start >= true_start) && (end <= true_end)) {
         intersection = end - start;
         union = true_end - true_start;
@@ -244,11 +238,8 @@ export function SheetMusicOSMD() {
     let count_total = 0;
     let current_j = 0;
     for (let i = 0; i < noteHistory.length; i++) {
-      console.log(`formatted notes: ${JSON.stringify(formattedNotes[0])}`);
-      console.log(`test: ${formattedNotes[0].note}`)
-      let true_curr_note = formattedNotes[current_j].pitch.step;
+      let true_curr_note = formattedNotes[current_j].note;
       if (current_j < formattedNotes.length) {
-        console.log(`note history note: ${noteHistory[i].note}`)
         if (noteHistory[i].note == true_curr_note) {
           count_correct += 1;
           count_total += 1;
