@@ -175,7 +175,7 @@ export function SheetMusicOSMD() {
         }
         startSong();
       }
-      
+
     }, metronomeIntervalMs);
 
     // Prevent starting the song until the metronome has clicked 4 times
@@ -345,7 +345,7 @@ export function SheetMusicOSMD() {
 
 
   return (
-    <div className="max-w-full mx-auto px-4 py-8 flex flex-col sm:flex-row overflow-hidden">
+    <div className="max-w-full mx-auto px-4 py-8 flex flex-col sm:flex-row">
       {/* Sheet music container */}
       <div className="w-full sm:w-1/2 mb-4 sm:mb-0">
         <div className="mb-4">
@@ -406,7 +406,7 @@ export function SheetMusicOSMD() {
       </div>
 
       {/* Control panel (keyboard, metronome, etc.) */}
-      <div className="w-full sm:w-1/2">
+      <div className="w-full sm:w-1/2 overflow-hidden">
         <Keyboard octave={octave} setOctave={setOctave} />
 
         {/* Metronome toggle */}

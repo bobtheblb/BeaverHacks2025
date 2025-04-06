@@ -227,7 +227,7 @@
     {
         "measure_number": "12",
         "duration": "360",
-        "type": "half",
+        "type": "dotted-half",
         "pitch": {
             "step": "F",
             "octave": "4"
