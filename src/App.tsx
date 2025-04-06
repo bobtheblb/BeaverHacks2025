@@ -1,11 +1,13 @@
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+
 import './App.css'
-import { useEffect, useState } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router';
+
+import { Routes, Route } from 'react-router';
 
 // Pages
 import Home from './pages/Home';
+import Tone from './pages/Tone';
+import Rhythm from './pages/Rhythm';
+import Sheets from './pages/Sheets';
 import KeyboardTest from './pages/KeyboardTest'
 
 import './App.css';
@@ -15,6 +17,9 @@ function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/keyboard" element={<KeyboardTest />} /> 
+      <Route path="/tone" element={<Tone />} />
+      <Route path="/rhythm" element={<Rhythm />} />
+      <Route path="/sheets" element={<Sheets />} />
     </Routes>
   );
 }
