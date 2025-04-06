@@ -92,7 +92,9 @@ export function SheetMusicOSMD() {
       metronome.triggerAttackRelease('C1', '8n');
       beatCount++;
       if (beatCount === 5) {
-        // clearInterval(metronomeInterval); // Stop the metronome after 4 beats
+        if (!isMetronomeActive) {
+          clearInterval(metronomeInterval); // Stop the metronome after 4 beats
+        }
         startSong(); // Start playing the song after 4 beats
       }
     }, Tone.Time('4n').toMilliseconds()); // Metronome interval (4 beats)
@@ -271,6 +273,17 @@ export function SheetMusicOSMD() {
           >
             Play Song
           </button>
+          
+          {/* Metronome checkbox */}
+          <label className="ml-4 text-lg font-semibold flex items-center">
+            <input
+              type="checkbox"
+              checked={isMetronomeActive}
+              onChange={() => setIsMetronomeActive(prev => !prev)}
+              className="mr-2"
+            />
+            Metronome
+          </label>
         </div>
 
         {/* Sheet music viewer */}
@@ -295,17 +308,16 @@ export function SheetMusicOSMD() {
           <button
             onClick={toggleMetronome}
             style={{
-              backgroundColor: isMetronomeActive ? '#ff6347' : '#32cd32',
+              backgroundColor: '#32cd32',  // Always green (metronome start button)
               color: 'white',
               padding: '10px 20px',
               fontSize: '16px',
               border: 'none',
               borderRadius: '5px',
               cursor: 'pointer',
-              transition: 'background-color 0.3s ease',
             }}
           >
-            {isMetronomeActive ? 'Stop Metronome' : 'Start Metronome'}
+            Start Metronome
           </button>
         </div>
 
