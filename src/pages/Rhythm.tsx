@@ -197,7 +197,7 @@ const Rhythm: React.FC = () => {
           const index = measureUserTaps.length;
           const expectedTime = measureExpectedBeatTimes[index];
           const errorMs = (now - expectedTime) * 1000;
-          const rating = Math.abs(errorMs) <= 150 ? '🎯 Great!' : '❌ Miss';
+          const rating = Math.abs(errorMs) <= 150 ? '✅' : '❌';
           const sign = errorMs >= 0 ? '+' : '-';
           const feedbackMsg = `Beat ${index + 1}: ${rating} (${sign}${Math.abs(errorMs).toFixed(1)} ms)`;
 
