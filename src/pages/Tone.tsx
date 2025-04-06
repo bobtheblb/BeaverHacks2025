@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import * as Tone from 'tone';
 import Keyboard from '../Keyboard.tsx';
+import Dash from '../Dash.tsx';
 
 const App = () => {
   const [isMetronomeActive, setIsMetronomeActive] = useState(false);
@@ -103,6 +104,7 @@ const App = () => {
 
   return (
     <div>
+      <Dash />
       <Keyboard />
 
       <h1>Press keys to play notes</h1>
