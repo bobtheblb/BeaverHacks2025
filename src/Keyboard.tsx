@@ -10,7 +10,7 @@ function Keyboard({ octave, setOctave }) {
   const white_key_fill = "white";
   const white_key_stroke = "black";
   const white_key_stroke_width = 5;
-  const white_key_start_x = 300;
+  const white_key_start_x = 150;
   const white_key_start_y = 20;
 
   const black_key_width = 40;
@@ -18,6 +18,7 @@ function Keyboard({ octave, setOctave }) {
   const black_key_fill = "black";
   const black_key_stroke = "black";
   const black_key_stroke_width = 5;
+  const black_key_start_x = 150;
   const black_key_start_y = 20;
   const black_key_xs = [352, 450, 592, 680, 768];
 
@@ -74,12 +75,14 @@ function Keyboard({ octave, setOctave }) {
   }, []);
 
   return (
-    <div>
-      <button onClick={() => changeOctave(-1)}>-</button>
-      <span>Octave {octave}</span>
-      <button onClick={() => changeOctave(1)}>+</button>
+    <div style={styles.container}>
+      <div style={styles.octaveControls}>
+        <button style={styles.octaveButton} onClick={() => changeOctave(-1)}>-</button>
+        <span style={styles.octaveText}>Octave {octave}</span>
+        <button style={styles.octaveButton} onClick={() => changeOctave(1)}>+</button>
+      </div>
 
-      <Stage width={1500} height={400}>
+      <Stage width={900} height={400}>
         <Layer>
           {/* White keys */}
           {Array.from({ length: 8 }).map((_, index) => {
@@ -120,7 +123,7 @@ function Keyboard({ octave, setOctave }) {
             return (
               <React.Fragment key={`black-${index}`}>
                 <Rect
-                  x={x}
+                  x={x-black_key_start_x}
                   y={black_key_start_y}
                   width={black_key_width}
                   height={black_key_height}
@@ -130,7 +133,7 @@ function Keyboard({ octave, setOctave }) {
                 />
                 <Text
                   text={noteSharp}
-                  x={x}
+                  x={x-black_key_start_x}
                   y={black_key_start_y + black_letter_gap_from_key_bottom}
                   width={black_key_width}
                   height={black_key_height}
@@ -147,5 +150,38 @@ function Keyboard({ octave, setOctave }) {
     </div>
   );
 }
+
+const styles = {
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  octaveControls: {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '20px',
+  },
+  octaveButton: {
+    backgroundColor: '#4CAF50',
+    border: 'none',
+    color: 'white',
+    padding: '10px 20px',
+    fontSize: '18px',
+    cursor: 'pointer',
+    borderRadius: '5px',
+    margin: '0 10px',
+    transition: 'background-color 0.3s',
+  },
+  octaveButtonHover: {
+    backgroundColor: '#45a049',
+  },
+  octaveText: {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    color: '#333',
+  },
+};
 
 export default Keyboard;
