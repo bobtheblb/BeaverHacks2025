@@ -26,6 +26,7 @@ const Rhythm: React.FC = () => {
   const [measureExpectedBeatTimes, setMeasureExpectedBeatTimes] = useState<number[]>([]);
   const [measureUserTaps, setMeasureUserTaps] = useState<number[]>([]);
   const [measureFeedbackArray, setMeasureFeedbackArray] = useState<string[]>([]);
+  const [measureDurations, setMeasureDurations] = useState<number[]>([]);
 
   // Refs & Animation controls (shared)
   const beatTimesRef = useRef<number[]>([]);
@@ -33,7 +34,8 @@ const Rhythm: React.FC = () => {
 
   // Used in Measure view: generate a new music measure
   const generateNewMeasure = (): void => {
-    const measure = generateRandomMeasure();
+    const measure = generateRandomMeasure(); // like [1, 0.5, 0.5, 1]
+    setMeasureDurations(measure); // Save the structure for beat scheduling
     console.log('Generated measure:', measure);
     const xml = generateRandomMusicXML(measure);
     setMeasureXML(xml);
@@ -117,16 +119,17 @@ const Rhythm: React.FC = () => {
 
   // Once measureActive is true, schedule exactly 4 beats (one per quarter note).
   useEffect(() => {
-    if (activeTab !== 'measure' || !measureActive) return;
-
+    if (activeTab !== 'measure' || !measureActive || measureDurations.length === 0) return;
+  
     Tone.Transport.bpm.value = bpm;
     const synth = new Tone.MembraneSynth().toDestination();
-    const startTime = Tone.now() + 0.1; // slight delay before the first beat
+    const startTime = Tone.now() + 0.1;
     const newExpectedBeats: number[] = [];
-
-    // Schedule 4 beats
-    for (let i = 0; i < 4; i++) {
-      const beatTime = startTime + i * (60 / bpm);
+  
+    let cumulativeBeats = 0;
+  
+    for (const duration of measureDurations) {
+      const beatTime = startTime + cumulativeBeats * (60 / bpm);
       newExpectedBeats.push(beatTime);
       Tone.Transport.schedule((time: number) => {
         synth.triggerAttackRelease("C2", "8n", time);
@@ -137,13 +140,15 @@ const Rhythm: React.FC = () => {
           });
         }, time);
       }, beatTime);
+      cumulativeBeats += duration;
     }
+  
     setMeasureExpectedBeatTimes(newExpectedBeats);
-
+  
     if (Tone.Transport.state !== 'started') {
       Tone.Transport.start();
     }
-  }, [activeTab, measureActive, bpm, pulseControls]);
+  }, [activeTab, measureActive, bpm, pulseControls, measureDurations]);
 
   // ================================
   // Global Spacebar Listener for Tapping
