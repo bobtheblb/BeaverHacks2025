@@ -39,7 +39,7 @@ const Home = () => {
 
     <motion.button
       className="btn btn-neutral px-6 py-3 text-lg pointer-events-auto transition-transform duration-200 hover:scale-105 hover:bg-neutral-focus"
-      onClick={() => navigate('/rhythm')}
+      onClick={() => document.getElementById("tool_modal").showModal()}
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ delay: 0.7, duration: 0.4 }}
@@ -48,6 +48,44 @@ const Home = () => {
     >
       Get Started
     </motion.button>
+
+    <dialog id="tool_modal" className="modal">
+    <div className="modal-box">
+      <h3 className="font-bold text-lg">Select one of our practice tools!</h3>
+      
+      <div className="flex flex-row gap-5 items-center justify-center mt-4">
+       
+        <div className="card bg-base-100 w-96 shadow-sm">
+          <div className="card-body">
+            <h2 className="card-title">Practice Room 🎹</h2>
+            <p>Learn children’s songs and play along using our interactive piano.</p>
+            <div className="card-actions justify-end">
+              <button className="btn btn-primary" onClick={() => navigate('/sheets')}>Enter</button>
+            </div>
+          </div>
+        </div>
+
+        <div className="card bg-base-100 w-96 shadow-sm">
+          <div className="card-body">
+            <h2 className="card-title">Rhythm Trainer 🥁</h2>
+            <p>Improve your timing and coordination with fun rhythm challenges.</p>
+            <div className="card-actions justify-end">
+              <button className="btn btn-primary" onClick={() => navigate('/rhythm')}>Enter</button>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+      
+      <div className="modal-action">
+        <form method="dialog">
+          {/* if there is a button in form, it will close the modal */}
+          <button className="btn">Close</button>
+        </form>
+      </div>
+    </div>
+  </dialog>
   </motion.div>
 </div>
   );
