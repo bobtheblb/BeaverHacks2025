@@ -409,7 +409,12 @@ const Rhythm: React.FC = () => {
       <div className="mt-8">
         <button
           className="btn btn-neutral px-6 py-3 text-lg"
-          onClick={() => navigate('/')}
+          onClick={
+            () => {
+              navigate('/');
+              window.location.reload();
+            }
+          }
         >
           Back Home
         </button>
