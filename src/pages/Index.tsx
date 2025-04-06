@@ -39,7 +39,10 @@ const Home = () => {
 
     <motion.button
       className="btn btn-neutral px-6 py-3 text-lg pointer-events-auto transition-transform duration-200 hover:scale-105 hover:bg-neutral-focus"
-      onClick={() => document.getElementById("tool_modal").showModal()}
+      onClick={() => {
+        const modal = document.getElementById("tool_modal") as HTMLDialogElement | null;
+        modal?.showModal();
+      }}
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ delay: 0.7, duration: 0.4 }}
