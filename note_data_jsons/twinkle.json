@@ -1,7 +1,7 @@
 [
     {
         "measure_number": "1",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "C",
@@ -10,7 +10,7 @@
     },
     {
         "measure_number": "1",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "C",
@@ -19,7 +19,7 @@
     },
     {
         "measure_number": "1",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "G",
@@ -28,7 +28,7 @@
     },
     {
         "measure_number": "1",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "G",
@@ -37,7 +37,7 @@
     },
     {
         "measure_number": "2",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "A",
@@ -46,7 +46,7 @@
     },
     {
         "measure_number": "2",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "A",
@@ -55,7 +55,7 @@
     },
     {
         "measure_number": "2",
-        "duration": "2",
+        "duration": "240",
         "type": "half",
         "pitch": {
             "step": "G",
@@ -64,7 +64,7 @@
     },
     {
         "measure_number": "3",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "F",
@@ -73,7 +73,7 @@
     },
     {
         "measure_number": "3",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "F",
@@ -82,7 +82,7 @@
     },
     {
         "measure_number": "3",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "E",
@@ -91,7 +91,7 @@
     },
     {
         "measure_number": "3",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "E",
@@ -100,7 +100,7 @@
     },
     {
         "measure_number": "4",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "D",
@@ -109,7 +109,7 @@
     },
     {
         "measure_number": "4",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "D",
@@ -118,7 +118,7 @@
     },
     {
         "measure_number": "4",
-        "duration": "2",
+        "duration": "240",
         "type": "half",
         "pitch": {
             "step": "C",
@@ -127,7 +127,7 @@
     },
     {
         "measure_number": "5",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "G",
@@ -136,7 +136,7 @@
     },
     {
         "measure_number": "5",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "G",
@@ -145,7 +145,7 @@
     },
     {
         "measure_number": "5",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "F",
@@ -154,7 +154,7 @@
     },
     {
         "measure_number": "5",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "F",
@@ -163,7 +163,7 @@
     },
     {
         "measure_number": "6",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "E",
@@ -172,7 +172,7 @@
     },
     {
         "measure_number": "6",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "E",
@@ -181,7 +181,7 @@
     },
     {
         "measure_number": "6",
-        "duration": "2",
+        "duration": "240",
         "type": "half",
         "pitch": {
             "step": "D",
@@ -190,7 +190,7 @@
     },
     {
         "measure_number": "7",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "G",
@@ -199,7 +199,7 @@
     },
     {
         "measure_number": "7",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "G",
@@ -208,7 +208,7 @@
     },
     {
         "measure_number": "7",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "F",
@@ -217,7 +217,7 @@
     },
     {
         "measure_number": "7",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "F",
@@ -226,7 +226,7 @@
     },
     {
         "measure_number": "8",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "E",
@@ -235,7 +235,7 @@
     },
     {
         "measure_number": "8",
-        "duration": "1",
+        "duration": "120",
         "type": "quarter",
         "pitch": {
             "step": "E",
@@ -244,7 +244,7 @@
     },
     {
         "measure_number": "8",
-        "duration": "2",
+        "duration": "240",
         "type": "half",
         "pitch": {
             "step": "D",

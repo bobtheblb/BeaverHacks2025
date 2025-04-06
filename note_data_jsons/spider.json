@@ -47,7 +47,7 @@
     {
         "measure_number": "3",
         "duration": "180",
-        "type": "quarter",
+        "type": "dotted-quarter",
         "pitch": {
             "step": "A",
             "octave": "4"
@@ -110,7 +110,7 @@
     {
         "measure_number": "5",
         "duration": "180",
-        "type": "quarter",
+        "type": "dotted-quarter",
         "pitch": {
             "step": "F",
             "octave": "4"
@@ -119,13 +119,14 @@
     {
         "measure_number": "5",
         "duration": "180",
-        "type": "quarter",
-        "pitch": null
+        "type": "dotted-quarter",
+        "pitch": null,
+        "dotted": true
     },
     {
         "measure_number": "6",
         "duration": "180",
-        "type": "quarter",
+        "type": "dotted-quarter",
         "pitch": {
             "step": "A",
             "octave": "4"
@@ -145,14 +146,14 @@
         "duration": "60",
         "type": "eighth",
         "pitch": {
-            "step": "B",
+            "step": "A#",
             "octave": "4"
         }
     },
     {
         "measure_number": "7",
         "duration": "180",
-        "type": "quarter",
+        "type": "dotted-quarter",
         "pitch": {
             "step": "C",
             "octave": "5"
@@ -161,7 +162,7 @@
     {
         "measure_number": "7",
         "duration": "180",
-        "type": "quarter",
+        "type": "dotted-quarter",
         "pitch": {
             "step": "C",
             "octave": "5"
@@ -172,7 +173,7 @@
         "duration": "120",
         "type": "quarter",
         "pitch": {
-            "step": "B",
+            "step": "A#",
             "octave": "4"
         }
     },
@@ -190,7 +191,7 @@
         "duration": "120",
         "type": "quarter",
         "pitch": {
-            "step": "B",
+            "step": "A#",
             "octave": "4"
         }
     },
@@ -206,7 +207,7 @@
     {
         "measure_number": "9",
         "duration": "180",
-        "type": "quarter",
+        "type": "dotted-quarter",
         "pitch": {
             "step": "A",
             "octave": "4"
@@ -215,13 +216,14 @@
     {
         "measure_number": "9",
         "duration": "180",
-        "type": "quarter",
-        "pitch": null
+        "type": "dotted-quarter",
+        "pitch": null,
+        "dotted": true
     },
     {
         "measure_number": "10",
         "duration": "180",
-        "type": "quarter",
+        "type": "dotted-quarter",
         "pitch": {
             "step": "F",
             "octave": "4"
@@ -248,7 +250,7 @@
     {
         "measure_number": "11",
         "duration": "180",
-        "type": "quarter",
+        "type": "dotted-quarter",
         "pitch": {
             "step": "A",
             "octave": "4"
@@ -257,7 +259,7 @@
     {
         "measure_number": "11",
         "duration": "180",
-        "type": "quarter",
+        "type": "dotted-quarter",
         "pitch": {
             "step": "A",
             "octave": "4"
@@ -302,7 +304,7 @@
     {
         "measure_number": "13",
         "duration": "180",
-        "type": "quarter",
+        "type": "dotted-quarter",
         "pitch": {
             "step": "F",
             "octave": "4"
@@ -365,7 +367,7 @@
     {
         "measure_number": "15",
         "duration": "180",
-        "type": "quarter",
+        "type": "dotted-quarter",
         "pitch": {
             "step": "A",
             "octave": "4"
@@ -428,7 +430,7 @@
     {
         "measure_number": "17",
         "duration": "180",
-        "type": "quarter",
+        "type": "dotted-quarter",
         "pitch": {
             "step": "F",
             "octave": "4"

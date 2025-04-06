@@ -137,7 +137,7 @@
     {
         "measure_number": "8",
         "duration": "360",
-        "type": "half",
+        "type": "dotted-half",
         "pitch": {
             "step": "D",
             "octave": "5"
@@ -290,7 +290,7 @@
     {
         "measure_number": "16",
         "duration": "360",
-        "type": "half",
+        "type": "dotted-half",
         "pitch": {
             "step": "G",
             "octave": "4"

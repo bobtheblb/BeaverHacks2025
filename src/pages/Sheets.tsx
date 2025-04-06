@@ -1,15 +1,27 @@
 import { useEffect, useRef, useState } from 'react';
 import * as OpenSheetMusicDisplay from 'opensheetmusicdisplay';
 import * as Tone from 'tone';
-import Keyboard from '../Keyboard.tsx'; // Assuming you have a Keyboard component
+import Keyboard from '../Keyboard.tsx'; 
+
+import amazing_grace from '../../note_data_jsons/amazing_grace.json';
+import mary from '../../note_data_jsons/mary.json';
+import twinkle from '../../note_data_jsons/twinkle.json';
+
+import saints from '../../note_data_jsons/saints.json';
+import spider from '../../note_data_jsons/spider.json';
 
 export function SheetMusicOSMD() {
-  const [selectedFile, setSelectedFile] = useState<string>('/twinkle.musicxml');
+  const [selectedFile, setSelectedFile] = useState<string>(() => {
+    return localStorage.getItem('selectedSheetMusic') || '/twinkle.musicxml';
+  });
   const [musicXML, setMusicXML] = useState<string | null>(null);
   const osmdContainerRef = useRef<HTMLDivElement>(null);
   const osmdInstance = useRef<OpenSheetMusicDisplay.OpenSheetMusicDisplay | null>(null);
+  const [song, setSong] = useState<string>('twinkle');  // Set default song to 'mary'
 
   const [isMetronomeActive, setIsMetronomeActive] = useState(false);
+  const [isMetronomeActive2, setIsMetronomeActive2] = useState(false);
+
   const [tempo, setTempo] = useState(120); // Default tempo for metronome
   const [heldNotes, setHeldNotes] = useState<string[]>([]);
   const [octave, setOctave] = useState(4); // Default octave
@@ -21,6 +33,7 @@ export function SheetMusicOSMD() {
   const [avgIou, setAvgIou] = useState(0.0);
   const [accuracy, setAccuracy] = useState(0.0);
   const [showMetrics, setShowMetrics] = useState(false);
+  const [isSongPlaying, setIsSongPlaying] = useState(false); // Track song playback state
 
   const keyToNoteMap = {
     a: `C${octave}`,
@@ -38,43 +51,102 @@ export function SheetMusicOSMD() {
     k: `C${octave + 1}`,
   };
 
-  const twinkle = [
-    { note: 'C4', duration: '4n' },
-    { note: 'C4', duration: '4n' },
-    { note: 'G4', duration: '4n' },
-    { note: 'G4', duration: '4n' },
+  interface Note {
+    note: string;
+    duration: string;
+    time?: string; // Optional, if you want to add time calculations
+  }
 
-    { note: 'A4', duration: '4n' },
-    { note: 'A4', duration: '4n' },
-    { note: 'G4', duration: '2n' },
+  const formattedNotes: Note[] = [];
+  let currentTime1 = 0;
+  const millisecondsPerBeat1 = (60 / tempo) * 1000; // BPM to milliseconds per beat conversion
 
-    { note: 'F4', duration: '4n' },
-    { note: 'F4', duration: '4n' },
-    { note: 'E4', duration: '4n' },
-    { note: 'E4', duration: '4n' },
+  // Based on selected song, update the notes
+  const songData = {
+    mary: mary,
+    twinkle: twinkle,
+    saints: saints,
+    spider: spider,
+    amazing_grace: amazing_grace
+  };
 
-    { note: 'D4', duration: '4n' },
-    { note: 'D4', duration: '4n' },
-    { note: 'C4', duration: '2n' },
+  const notesToUse = songData[song] || mary;  // Default to mary if no song is found
+  notesToUse.forEach((item) => {
+    // Handle rest (pitch is null)
+    if (item.pitch === null) {
+        let duration = '';
+        if (item.duration === "60") {
+            duration = '8n'; // Eighth rest
+        } else if (item.duration === "120") {
+            duration = '4n'; // Quarter rest
+        } else if (item.duration === "180") {
+            duration = '4n.'; // Quarter half rest
+        } else if (item.duration === "240") {
+            duration = '2n'; // Half rest
+        }
+        
 
-    { note: 'G4', duration: '4n' },
-    { note: 'G4', duration: '4n' },
-    { note: 'F4', duration: '4n' },
-    { note: 'F4', duration: '4n' },
+        const restDuration = duration === '8n' ? 1 / 8 :
+                             duration === '4n' ? 1 / 4 :
+                             duration === '2n' ? 1 / 2 : 1;
+        
+        const time = currentTime1;
+        currentTime1 += restDuration * millisecondsPerBeat1;  // Update the time
+        formattedNotes.push({ note: 'rest', duration, time: `${time}` });
+    }else {
+      // Handle regular notes
+      const note = `${item.pitch.step}${item.pitch.octave}`;
+      let duration = '';
+      let noteDuration = 0;
+  
+      // Set the note duration based on item.type
+      if (item.type === 'eighth') {
+          duration = '8n';
+          noteDuration = 1 / 8;
+      } else if (item.type === 'quarter') {
+          if (item.dot) { // Dotted quarter note
+              duration = '4n.';
+              noteDuration = (1 / 4) * 1.5; // 3/8
+          } else {
+              duration = '4n';
+              noteDuration = 1 / 4;
+          }
+      } else if (item.type === 'half') {
+          duration = '2n';
+          noteDuration = 1 / 2;
+      } else if (item.type === 'whole') {
+          duration = '1n';
+          noteDuration = 1;
+      } else if (item.type === 'dotted-quarter') {
+          duration = '4n.';
+          noteDuration = (1 / 4) * 1.5; // 3/8
+      } else if (item.type === 'dotted-half') {
+        duration = '2n.';
+        noteDuration = (1 / 2) * 1.5;
+      }
+  
+      // Optional: Override noteDuration based on specific duration string
+      if (item.duration === "60") {
+          noteDuration *= 1;
+      } else if (item.duration === "120") {
+          noteDuration *= 2;
+      } else if (item.duration === "180") {
+          noteDuration *= 4;
+      } else if (item.duration === "240") {
+          noteDuration *= 8;
+      }
+  
+      // Calculate time
+      const time = currentTime1;
+      currentTime1 += noteDuration * millisecondsPerBeat1;
+  
+      // Push to formattedNotes
+      formattedNotes.push({ note, duration, time: `${time}` });
+    }
+  });
 
-    { note: 'E4', duration: '4n' },
-    { note: 'E4', duration: '4n' },
-    { note: 'D4', duration: '2n' },
 
-    { note: 'G4', duration: '4n' },
-    { note: 'G4', duration: '4n' },
-    { note: 'F4', duration: '4n' },
-    { note: 'F4', duration: '4n' },
-
-    { note: 'E4', duration: '4n' },
-    { note: 'E4', duration: '4n' },
-    { note: 'D4', duration: '2n' },
-  ]
+  console.log(formattedNotes);
 
   function calculateIou(start, end) {
     var true_note;
@@ -172,8 +244,11 @@ export function SheetMusicOSMD() {
     let count_total = 0;
     let current_j = 0;
     for (let i = 0; i < noteHistory.length; i++) {
-      let true_curr_note = twinkle[current_j].note;
-      if (current_j < twinkle.length) {
+      console.log(`formatted notes: ${JSON.stringify(formattedNotes[0])}`);
+      console.log(`test: ${formattedNotes[0].note}`)
+      let true_curr_note = formattedNotes[current_j].pitch.step;
+      if (current_j < formattedNotes.length) {
+        console.log(`note history note: ${noteHistory[i].note}`)
         if (noteHistory[i].note == true_curr_note) {
           count_correct += 1;
           count_total += 1;
@@ -193,33 +268,77 @@ export function SheetMusicOSMD() {
   let currentTime = 0;
   const millisecondsPerBeat = (60 / tempo) * 1000; // BPM to milliseconds per beat conversion
 
-  twinkle.forEach(note => {
-    const noteDuration = note.duration === '4n' ? 1 : (note.duration === '2n' ? 2 : 0);
-    note.time = currentTime;  // Store the cumulative time for the note in milliseconds
-    currentTime += noteDuration * millisecondsPerBeat; // Update the cumulative time in milliseconds
-    note.durationMs = noteDuration * millisecondsPerBeat
-  });
-
-  console.log(twinkle);
-
   // Function to play the song
+
+
   const playSong = async () => {
+    setIsSongPlaying(true);
     // Ensure Tone.js is started
     await Tone.start();
 
-    // Create a synth to play the notes
-    const synth = new Tone.Synth().toDestination();
+    // Play the metronome for 4 beats
+    const metronome = new Tone.MembraneSynth().toDestination();
+    let beatCount = 0;
+    let countIn = 0;
+    let metronomeIntervalMs = Tone.Time('4n').toMilliseconds(); // default
 
-    // Play the song
-    for (let i = 0; i < twinkle.length; i++) {
-      const { note, duration } = twinkle[i];
-      synth.triggerAttackRelease(note, duration);
-      await new Promise(resolve => setTimeout(resolve, Tone.Time(duration).toMilliseconds()));
+    if (song === 'twinkle' || song === 'mary') {
+      countIn = 4;
     }
+    else if (song === 'saints' || song === 'amazing_grace') {
+      countIn = 5;
+    }
+    else if (song === 'spider') {
+      countIn = 11; // for 6/8 time
+      metronomeIntervalMs = Tone.Time('8n').toMilliseconds(); // eighth-note metronome
+    } else {
+      countIn = 4; // or however many you want for 4/4 songs
+      metronomeIntervalMs = Tone.Time('4n').toMilliseconds(); // quarter-note metronome
+    }
+
+    const metronomeInterval = setInterval(() => {
+      metronome.triggerAttackRelease('C1', '8n');
+      beatCount++;
+      if (beatCount === countIn + 1) {
+        if (!isMetronomeActive2) {
+          clearInterval(metronomeInterval); // Stop the metronome after 4 beats
+        }
+        startSong();
+      }
+
+    }, metronomeIntervalMs);
+
+    // Prevent starting the song until the metronome has clicked 4 times
+    const startSong = async () => {
+      // Create a synth to play the notes
+      const synth = new Tone.Synth().toDestination();
+      // Play the song
+      for (let i = 0; i < formattedNotes.length; i++) {
+        const { note, duration } = formattedNotes[i];
+        console.log(duration);
+
+        // Skip if the note is a rest
+        if (note === 'rest') {
+          // Do nothing, no need to trigger anything for rests
+          await new Promise(resolve => setTimeout(resolve, Tone.Time(duration).toMilliseconds()));
+        } else {
+          synth.triggerAttackRelease(note, duration);
+          await new Promise(resolve => setTimeout(resolve, Tone.Time(duration).toMilliseconds()));
+        }
+      }
+      setIsSongPlaying(false); // Song finished or stopped
+      clearInterval(metronomeInterval);
+    };
+  };
+
+  const stopSong = () => {
+    Tone.Transport.stop(); // Stop the transport to halt any ongoing playback
+    Tone.context.close(); // Optionally stop Tone.js context (disabling audio)
+    setIsSongPlaying(false);
+    window.location.reload();
   };
 
   // Metronome setup
-  const metronome = new Tone.MembraneSynth().toDestination();
   const transport = Tone.Transport;
   transport.bpm.value = tempo;
 
@@ -237,7 +356,13 @@ export function SheetMusicOSMD() {
 
   // Handle selection change (dropdown)
   const handleFileChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newFile = event.target.value;
     setSelectedFile(event.target.value);
+
+    // Update song name when file is selected
+    const songName = newFile.split('.')[0] // Get the song name from the file name
+      .replace('/', '') // Remove the leading slash
+    setSong(songName);
   };
 
   // Fetch the music XML file when the selected file changes
@@ -386,13 +511,15 @@ export function SheetMusicOSMD() {
   };
 
   useEffect(() => {
+    const metronome = new Tone.MembraneSynth().toDestination();
     transport.scheduleRepeat(() => {
       metronome.triggerAttackRelease('C1', '8n');
     }, '4n');
   }, []);
 
+
   return (
-    <div className="max-w-full mx-auto px-4 py-8 flex flex-col sm:flex-row overflow-hidden">
+    <div className="max-w-full mx-auto px-4 py-8 flex flex-col sm:flex-row">
       {/* Sheet music container */}
       <div className="w-full sm:w-1/2 mb-4 sm:mb-0">
         <div className="mb-4">
@@ -413,22 +540,32 @@ export function SheetMusicOSMD() {
           </select>
         </div>
 
-        <div className="mb-4">
-        <button
-          onClick={playSong}
-          style={{
-            backgroundColor: '#32cd32',
-            color: 'white',
-            padding: '10px 20px',
-            fontSize: '16px',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-          }}
-        >
-          Play Song
-        </button>
-      </div>
+        <div className="mb-4 flex items-center space-x-4">
+          <button
+            onClick={isSongPlaying ? stopSong : playSong}
+            style={{
+              backgroundColor: isSongPlaying ? '#ff6347' : '#32cd32',
+              color: 'white',
+              padding: '10px 20px',
+              fontSize: '16px',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+            }}
+          >
+            {isSongPlaying ? 'Stop Song' : 'Play Song'}
+          </button>
+          <label className="flex items-center text-lg font-semibold">
+            <input
+              type="checkbox"
+              checked={isMetronomeActive2}
+              onChange={() => setIsMetronomeActive2(prev => !prev)}
+              className="mr-2"
+            />
+            Metronome On
+          </label>
+        </div>
+
         {/* Sheet music viewer */}
         <div className="mt-4 w-full h-[80vh]">
           {musicXML ? (
@@ -443,7 +580,7 @@ export function SheetMusicOSMD() {
       </div>
 
       {/* Control panel (keyboard, metronome, etc.) */}
-      <div className="w-full sm:w-1/2">
+      <div className="w-full sm:w-1/2 overflow-hidden">
         <Keyboard octave={octave} setOctave={setOctave} />
 
         {/* Metronome toggle */}
@@ -463,6 +600,8 @@ export function SheetMusicOSMD() {
           >
             {isMetronomeActive ? 'Stop Metronome' : 'Start Metronome'}
           </button>
+
+          <p>selected song: {song}</p>
         </div>
 
         {/* Metronome tempo control */}
@@ -489,7 +628,6 @@ export function SheetMusicOSMD() {
             onChange={handleTempoChange}
             className="w-full"
           />
-          <span className="ml-2">{tempo} BPM</span>
         </div>
         <div className="mt-4 flex items-center">
           <button
