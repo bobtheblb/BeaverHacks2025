@@ -9,6 +9,8 @@ export function SheetMusicOSMD() {
     { label: "Twinkle, Twinkle, Little Star", file: "/twinkle.musicxml" },
     { label: "Happy Birthday", file: "/happy.musicxml" },
     { label: "Mary Had a Little Lamb", file: "/mary.musicxml" },
+    { label: "Itsy Bitsy Spider", file: "/spider.musicxml" },
+
   ];
 
   const [musicXML, setMusicXML] = useState<string | null>(null);
@@ -45,14 +47,15 @@ export function SheetMusicOSMD() {
   }, [musicXML]);
 
   return (
-    <div>
+    <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Dropdown to select sheet music */}
-      <div>
-        <label htmlFor="sheet-music-dropdown">Select Sheet Music: </label>
+      <div className="mb-4">
+        <label htmlFor="sheet-music-dropdown" className="block text-lg font-semibold mb-2">Select Sheet Music: </label>
         <select
           id="sheet-music-dropdown"
           value={selectedFile}
           onChange={handleFileChange}
+          className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           {sheetMusicFiles.map((music) => (
             <option key={music.file} value={music.file}>
@@ -63,14 +66,14 @@ export function SheetMusicOSMD() {
       </div>
 
       {/* Sheet music viewer */}
-      <div>
+      <div className="mt-8">
         {musicXML ? (
           <div>
             {/* OSMD renders the sheet music here */}
-            <div ref={osmdContainerRef} style={{ width: '100%', height: '500px' }} />
+            <div ref={osmdContainerRef} />
           </div>
         ) : (
-          <p>Loading sheet music...</p>
+          <p className="text-center text-lg text-gray-600">Loading sheet music...</p>
         )}
       </div>
     </div>
