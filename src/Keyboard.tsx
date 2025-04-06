@@ -10,7 +10,7 @@ function Keyboard({ octave, setOctave }) {
   const white_key_fill = "white";
   const white_key_stroke = "black";
   const white_key_stroke_width = 5;
-  const white_key_start_x = 150;
+  const white_key_start_x = 125;
   const white_key_start_y = 50;
 
   const black_key_width = 40;
@@ -18,7 +18,7 @@ function Keyboard({ octave, setOctave }) {
   const black_key_fill = "black";
   const black_key_stroke = "black";
   const black_key_stroke_width = 5;
-  const black_key_start_x = 150;
+  const black_key_start_x = 170;
   const black_key_start_y = 50;
   const black_key_xs = [352, 450, 592, 680, 768];
 
@@ -75,12 +75,13 @@ function Keyboard({ octave, setOctave }) {
   }, []);
 
   return (
-    <div style={styles.container}>
+    <div style={styles.container}> 
       <div style={styles.octaveControls}>
-        <button style={styles.octaveButton} onClick={() => changeOctave(-1)}>-</button>
+        <button style={{ ...styles.octaveButton, backgroundColor: '#412ad5', color: 'white' }} onClick={() => changeOctave(-1)}>-</button>
         <span style={styles.octaveText}>Octave {octave}</span>
-        <button style={styles.octaveButton} onClick={() => changeOctave(1)}>+</button>
+        <button style={{ ...styles.octaveButton, backgroundColor: '#412ad5', color: 'white' }} onClick={() => changeOctave(1)}>+</button>
       </div>
+
 
       <Stage width={900} height={450}>
         <Layer>
@@ -153,7 +154,7 @@ function Keyboard({ octave, setOctave }) {
               <Text
                 key={`legend-${key}`}
                 text={key}
-                x={x - black_key_width - 100}
+                x={x - black_key_width - 120}
                 y={black_key_start_y - 35}
                 fontSize={25}
                 fill="black"
@@ -163,6 +164,8 @@ function Keyboard({ octave, setOctave }) {
 
           {/* Key Labels */}
           {Object.keys(keyToNoteMap).map((key, index) => {
+            if (['w', 'e', 't', 'y', 'u'].includes(key)) return null;
+
             const keyX = white_key_start_x + index * white_key_width;
             const isWhiteKey = index < 8;
 
@@ -171,7 +174,7 @@ function Keyboard({ octave, setOctave }) {
                 key={`label-${key}`}
                 text={key}
                 x={keyX + white_key_width / 2 - 12} // Adjusting to center the key label
-                y={isWhiteKey ? white_key_start_y + white_key_height + 10 : black_key_start_y + black_key_height + 10}
+                y={white_key_start_y + white_key_height + 10}
                 fontSize={25}
                 fill="black"
               />
@@ -192,25 +195,31 @@ const styles = {
   },
   octaveControls: {
     display: 'flex',
+    marginLeft: '20px',
     alignItems: 'center',
-    marginBottom: '20px',
+    marginTop: '20px',
   },
   octaveButton: {
     backgroundColor: '#4CAF50',
     border: 'none',
     color: 'white',
-    padding: '10px 20px',
-    fontSize: '18px',
+    fontSize: '15px',
+    width: '30px',
+    height: '30px',
     cursor: 'pointer',
-    borderRadius: '5px',
+    borderRadius: '50%', // keep it circular
     margin: '0 10px',
     transition: 'background-color 0.3s',
-  },
+    display: 'flex', // 👈 these 3 lines will center content
+    alignItems: 'center',
+    justifyContent: 'center',
+  },  
   octaveText: {
-    fontSize: '24px',
+    fontSize: '20px',
     fontWeight: 'bold',
     color: '#333',
   },
+  
 };
 
 export default Keyboard;
