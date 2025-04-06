@@ -19,6 +19,7 @@ export function SheetMusicOSMD() {
   const iouListRef = useRef([]);
   const noteHistoryRef = useRef([]);
   const [avgIou, setAvgIou] = useState(0.0);
+  const [accuracy, setAccuracy] = useState(0.0);
   const [showMetrics, setShowMetrics] = useState(false);
 
   const keyToNoteMap = {
@@ -75,7 +76,7 @@ export function SheetMusicOSMD() {
     { note: 'D4', duration: '2n' },
   ]
 
-  function calculateErrorMetrics(start, end) {
+  function calculateIou(start, end) {
     var true_note;
     var true_i;
     for (let i = 0; i < twinkle.length; i++) {
@@ -166,6 +167,28 @@ export function SheetMusicOSMD() {
     // ####
   }
 
+  function calculateAccuracy(noteHistory) {
+    let count_correct = 0;
+    let count_total = 0;
+    let current_j = 0;
+    for (let i = 0; i < noteHistory.length; i++) {
+      let true_curr_note = twinkle[current_j].note;
+      if (current_j < twinkle.length) {
+        if (noteHistory[i].note == true_curr_note) {
+          count_correct += 1;
+          count_total += 1;
+          current_j = current_j + 1;
+        } else {
+          count_total += 1;
+        }
+      } else {
+        count_total += 1;
+      }
+    }
+
+    return (count_correct / count_total);
+  }
+  
   // Calculate time for each note and include in the array
   let currentTime = 0;
   const millisecondsPerBeat = (60 / tempo) * 1000; // BPM to milliseconds per beat conversion
@@ -283,7 +306,7 @@ export function SheetMusicOSMD() {
   
           const coachingEndTime = coachingStartTime + duration
 
-          const iou = calculateErrorMetrics(coachingStartTime, coachingEndTime)
+          const iou = calculateIou(coachingStartTime, coachingEndTime)
 
           iouListRef.current.push(iou);
           const sumIou = iouListRef.current.reduce((partialSum, a) => partialSum + a, 0);
@@ -324,6 +347,7 @@ export function SheetMusicOSMD() {
   const toggleCoaching = () => {
     if (isCoachingActive) {
       coachingStartRef.current = null;
+      setAccuracy(calculateAccuracy(noteHistoryRef.current));
       setShowMetrics(true);
       setIsCoachingActive(false);
     } else {
@@ -485,6 +509,12 @@ export function SheetMusicOSMD() {
           </button>
           <p>
             {showMetrics ? avgIou : ''}
+          </p>
+          <p>
+            poop
+          </p>
+          <p>
+            {showMetrics ? accuracy : ''}
           </p>
         </div>
       </div>
