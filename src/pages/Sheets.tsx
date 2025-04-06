@@ -293,6 +293,8 @@ export function SheetMusicOSMD() {
   const handleFileChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newFile = event.target.value;
     setSelectedFile(event.target.value);
+    localStorage.setItem('selectedSheetMusic', newFile);
+    // console.log(newFile)
 
     // Update song name when file is selected
     const songName = newFile.split('.')[0] // Get the song name from the file name
