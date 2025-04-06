@@ -73,44 +73,95 @@ export function SheetMusicOSMD() {
 
   function calculateErrorMetrics(start, end) {
     var true_note;
+    var true_i;
     for (let i = 0; i < twinkle.length; i++) {
       let note = twinkle[i];
       if (start < note.time) {
         true_note = twinkle[i-1];
+        true_i = i-1
         break;
       }
     }
 
-    const true_start = true_note.time
-    const true_end = true_note.time + true_note.durationMs
-
-    console.log(`true start: ${true_start}, true end: ${true_end}`)
-    console.log(`start: ${start}, end: ${end}`)
-
-    // ###
-    //  ###
-    //
-    // ####
-    //  ##
-    //
-    //  ###
-    // ###
-    //
-    //  ##
-    // ####
-
-    var intersection;
-    var union;
-    if (start >= true_start) {
-      intersection = Math.min(true_end - start, end - start)
-      union = Math.max(end - true_start, true_end - true_start)
-    } else {
-      intersection = Math.min(end - true_start, true_end - true_start)
-      union = Math.max(true_end - start, end - start)
+    var next_note;
+    var next_i;
+    for (let i = 0; i < twinkle.length; i++) {
+      let note = twinkle[i];
+      if (end < note.time) {
+        next_note = twinkle[i-1];
+        next_i = i-1
+        break;
+      }
     }
 
-    const iou = intersection / union
-    return iou
+    let true_notes = [];
+    for (let i = true_i; i <= next_i; i++) {
+      true_notes.push(twinkle[i]);
+    }
+
+    console.log(`true notes poop: ${true_notes}`);
+
+    let ious = [];
+    let weights = [];
+    for (let i = 0; i < true_notes.length; i++) {
+      let true_note = true_notes[i];
+      let true_start = true_note.time;
+      let true_end = true_note.time + true_note.durationMs;
+      let intersection = 0;
+      let union = 0;
+      let weight = 0;
+      if ((start >= true_start) && (end <= true_end)) {
+        intersection = end - start;
+        union = true_end - true_start;
+        weight = 1;
+      } else if ((true_start <= start) && (end >= true_end)) {
+        intersection = true_end - start;
+        union = end - true_start;
+        weight = (true_end - start) / (end - start);
+      } else if ((true_start >= start) && (true_end <= end)) {
+        intersection = true_end - true_start;
+        union = end - start;
+        weight = (true_end - true_start) / (end - start);
+      } else if ((true_start >= start) && (true_end >= end)) {
+        intersection = end - true_start;
+        union = true_end - start;
+        weight = (end - true_start) / (end - start);
+      }
+      ious.push(intersection / union);
+      weights.push(weight);
+    }
+
+    let weighted_iou = 0;
+    for (let i = 0; i < ious.length; i++) {
+      weighted_iou += (ious[i] * weights[i])
+    }
+
+    return weighted_iou
+    // New cases:
+    // ###
+    //  #
+    //
+    // ###
+    //  ###
+    // 
+    //  #
+    // ###
+    //
+    //  ###
+    // ###
+
+    // Old cases:
+    // ###
+    //  ###
+    //
+    // ####
+    //  ##
+    //
+    //  ###
+    // ###
+    //
+    //  ##
+    // ####
   }
 
   // Calculate time for each note and include in the array
