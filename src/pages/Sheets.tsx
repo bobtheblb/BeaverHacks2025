@@ -3,6 +3,7 @@ import * as OpenSheetMusicDisplay from 'opensheetmusicdisplay';
 import * as Tone from 'tone';
 import Keyboard from '../Keyboard.tsx'; 
 import { GoogleGenAI } from "@google/genai";
+import { useNavigate } from 'react-router';
 
 import amazing_grace from '../../note_data_jsons/amazing_grace.json';
 import mary from '../../note_data_jsons/mary.json';
@@ -14,6 +15,8 @@ import spider from '../../note_data_jsons/spider.json';
 import gemini from '../../public/gemini.png';
 
 export function SheetMusicOSMD() {
+  const navigate = useNavigate();
+  
   const [selectedFile, setSelectedFile] = useState<string>(() => {
     return localStorage.getItem('selectedSheetMusic') || '/twinkle.musicxml';
   });
@@ -616,6 +619,7 @@ export function SheetMusicOSMD() {
 
 
   return (
+    <div>
     <div className="max-w-full mx-auto px-4 py-8 flex flex-col sm:flex-row">
       {/* Sheet music container */}
       <div className="w-full sm:w-1/2 mb-4 sm:mb-0 pr-4">
@@ -795,8 +799,19 @@ export function SheetMusicOSMD() {
         <img src="/gemini_icon.png" alt="Chat" className="h-10 w-10" />
 
       </button>
+      
 
     </div>
+
+    <div className="absolute left-0 bottom-0 ml-8">
+      <button
+        className="btn btn-neutral px-6 py-3 text-lg"
+        onClick={() => navigate('/')}
+      >
+        Back Home
+      </button>
+    </div>
+   </div>
     
   );
 }
