@@ -803,7 +803,7 @@ export function SheetMusicOSMD() {
 
     </div>
 
-    <div className="absolute left-0 bottom-0 ml-8">
+    <div className="fixed bottom-4 left-4 ">
       <button
         className="btn btn-neutral px-6 py-3 text-lg"
         onClick={() => navigate('/')}
