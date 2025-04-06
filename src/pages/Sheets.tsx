@@ -18,8 +18,9 @@ export function SheetMusicOSMD() {
   const [musicXML, setMusicXML] = useState<string | null>(null);
   const osmdContainerRef = useRef<HTMLDivElement>(null);
   const osmdInstance = useRef<OpenSheetMusicDisplay.OpenSheetMusicDisplay | null>(null);
-  const [song, setSong] = useState<string>('twinkle');  // Set default song to 'mary'
-
+  const [song, setSong] = useState<string>(() => {
+    return localStorage.getItem('selectedSong') || 'twinkle';
+  });
   const [isMetronomeActive, setIsMetronomeActive] = useState(false);
   const [isMetronomeActive2, setIsMetronomeActive2] = useState(false);
 
@@ -421,6 +422,7 @@ export function SheetMusicOSMD() {
     const songName = newFile.split('.')[0] // Get the song name from the file name
       .replace('/', '') // Remove the leading slash
     setSong(songName);
+    localStorage.setItem('selectedSong', songName);
   };
 
   // Fetch the music XML file when the selected file changes
