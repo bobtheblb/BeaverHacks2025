@@ -10,23 +10,90 @@ export function SheetMusicOSMD() {
   const osmdInstance = useRef<OpenSheetMusicDisplay.OpenSheetMusicDisplay | null>(null);
 
   const [isMetronomeActive, setIsMetronomeActive] = useState(false);
-  const [tempo, setTempo] = useState(120);  // Default tempo for metronome
+  const [tempo, setTempo] = useState(120); // Default tempo for metronome
   const [heldNotes, setHeldNotes] = useState<string[]>([]);
+  const [octave, setOctave] = useState(4); // Default octave
 
   const keyToNoteMap = {
-    a: 'C4',
-    w: 'C#4',
-    s: 'D4',
-    e: 'D#4',
-    d: 'E4',
-    f: 'F4',
-    t: 'F#4',
-    g: 'G4',
-    y: 'G#4',
-    h: 'A4',
-    u: 'A#4',
-    j: 'B4',
-    k: 'C5',
+    a: `C${octave}`,
+    w: `C#${octave}`,
+    s: `D${octave}`,
+    e: `D#${octave}`,
+    d: `E${octave}`,
+    f: `F${octave}`,
+    t: `F#${octave}`,
+    g: `G${octave}`,
+    y: `G#${octave}`,
+    h: `A${octave}`,
+    u: `A#${octave}`,
+    j: `B${octave}`,
+    k: `C${octave + 1}`,
+  };
+
+  const twinkle = [
+    { note: 'C4', duration: '4n' },
+    { note: 'C4', duration: '4n' },
+    { note: 'G4', duration: '4n' },
+    { note: 'G4', duration: '4n' },
+
+    { note: 'A4', duration: '4n' },
+    { note: 'A4', duration: '4n' },
+    { note: 'G4', duration: '2n' },
+
+    { note: 'F4', duration: '4n' },
+    { note: 'F4', duration: '4n' },
+    { note: 'E4', duration: '4n' },
+    { note: 'E4', duration: '4n' },
+
+    { note: 'D4', duration: '4n' },
+    { note: 'D4', duration: '4n' },
+    { note: 'C4', duration: '2n' },
+
+    { note: 'G4', duration: '4n' },
+    { note: 'G4', duration: '4n' },
+    { note: 'F4', duration: '4n' },
+    { note: 'F4', duration: '4n' },
+
+    { note: 'E4', duration: '4n' },
+    { note: 'E4', duration: '4n' },
+    { note: 'D4', duration: '2n' },
+
+    { note: 'G4', duration: '4n' },
+    { note: 'G4', duration: '4n' },
+    { note: 'F4', duration: '4n' },
+    { note: 'F4', duration: '4n' },
+
+    { note: 'E4', duration: '4n' },
+    { note: 'E4', duration: '4n' },
+    { note: 'D4', duration: '2n' },
+  ]
+
+  // Calculate time for each note and include in the array
+  let currentTime = 0;
+  const millisecondsPerBeat = (60 / tempo) * 1000; // BPM to milliseconds per beat conversion
+
+  twinkle.forEach(note => {
+    const noteDuration = note.duration === '4n' ? 1 / 4 : (note.duration === '2n' ? 1 / 2 : 0);
+    note.time = currentTime;  // Store the cumulative time for the note in milliseconds
+    currentTime += noteDuration * millisecondsPerBeat; // Update the cumulative time in milliseconds
+  });
+
+  console.log(twinkle);
+
+  // Function to play the song
+  const playSong = async () => {
+    // Ensure Tone.js is started
+    await Tone.start();
+
+    // Create a synth to play the notes
+    const synth = new Tone.Synth().toDestination();
+
+    // Play the song
+    for (let i = 0; i < twinkle.length; i++) {
+      const { note, duration } = twinkle[i];
+      synth.triggerAttackRelease(note, duration);
+      await new Promise(resolve => setTimeout(resolve, Tone.Time(duration).toMilliseconds()));
+    }
   };
 
   // Metronome setup
@@ -119,7 +186,7 @@ export function SheetMusicOSMD() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, []);
+  }, [octave]);
 
   const toggleMetronome = () => {
     if (isMetronomeActive) {
@@ -159,91 +226,107 @@ export function SheetMusicOSMD() {
   }, []);
 
   return (
-    <div className="max-w-full mx-auto px-4 py-8">
-      {/* Dropdown to select sheet music */}
-      <div className="mb-4">
-        <label htmlFor="sheet-music-dropdown" className="block text-lg font-semibold mb-2">
-          Select Sheet Music:
-        </label>
-        <select
-          id="sheet-music-dropdown"
-          value={selectedFile}
-          onChange={handleFileChange}
-          className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        >
-          {sheetMusicFiles.map((music) => (
-            <option key={music.file} value={music.file}>
-              {music.label}
-            </option>
-          ))}
-        </select>
-      </div>
+    <div className="max-w-full mx-auto px-4 py-8 flex flex-col sm:flex-row overflow-hidden">
+      {/* Sheet music container */}
+      <div className="w-full sm:w-1/2 mb-4 sm:mb-0">
+        <div className="mb-4">
+          <label htmlFor="sheet-music-dropdown" className="block text-lg font-semibold mb-2">
+            Select Sheet Music:
+          </label>
+          <select
+            id="sheet-music-dropdown"
+            value={selectedFile}
+            onChange={handleFileChange}
+            className="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            {sheetMusicFiles.map((music) => (
+              <option key={music.file} value={music.file}>
+                {music.label}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      {/* Sheet music viewer */}
-      <div className="mt-4 w-full h-[80vh]">
-        {musicXML ? (
-          <div
-            ref={osmdContainerRef}
-            style={{ width: '100%', height: '100%', display: 'block' }}
-          />
-        ) : (
-          <p className="text-center text-lg text-gray-600">Loading sheet music...</p>
-        )}
-      </div>
-
-      {/* Keyboard Section */}
-      <Keyboard />
-
-      <h1>Press keys to play notes</h1>
-      <p>
-        {heldNotes.length > 0
-          ? `Currently playing: ${heldNotes.join(', ')}`
-          : 'Press and hold a key to play a note'}
-      </p>
-
-      <div>
+        <div className="mb-4">
         <button
-          onClick={toggleMetronome}
+          onClick={playSong}
           style={{
-            backgroundColor: isMetronomeActive ? '#ff6347' : '#32cd32',
+            backgroundColor: '#32cd32',
             color: 'white',
             padding: '10px 20px',
             fontSize: '16px',
             border: 'none',
             borderRadius: '5px',
             cursor: 'pointer',
-            transition: 'background-color 0.3s ease',
           }}
         >
-          {isMetronomeActive ? 'Stop Metronome' : 'Start Metronome'}
+          Play Song
         </button>
       </div>
 
-      {/* Metronome tempo control */}
-      <div className="mt-4 flex items-center">
-        {/* Text box for exact tempo */}
-        <input
-          id="tempo-input"
-          type="number"
-          value={tempo}
-          onChange={handleTempoInput}
-          onKeyDown={handleInputKeyDown}
-          min="60"
-          max="200"
-          className="w-24 p-2 border border-gray-300 rounded-md mr-4"
-        />
 
-        {/* Sliding bar */}
-        <input
-          id="tempo-slider"
-          type="range"
-          min="60"
-          max="200"
-          value={tempo}
-          onChange={handleTempoChange}
-          className="w-full"
-        />
-        <span className="ml-2">{tempo} BPM</span>
+        {/* Sheet music viewer */}
+        <div className="mt-4 w-full h-[80vh]">
+          {musicXML ? (
+            <div
+              ref={osmdContainerRef}
+              style={{ width: '100%', height: '100%', display: 'block' }}
+            />
+          ) : (
+            <p className="text-center text-lg text-gray-600">Loading sheet music...</p>
+          )}
+        </div>
+      </div>
+
+      {/* Control panel (keyboard, metronome, etc.) */}
+      <div className="w-full sm:w-1/2">
+        <Keyboard octave={octave} setOctave={setOctave} />
+
+        {/* Metronome toggle */}
+        <div>
+          <button
+            onClick={toggleMetronome}
+            style={{
+              backgroundColor: isMetronomeActive ? '#ff6347' : '#32cd32',
+              color: 'white',
+              padding: '10px 20px',
+              fontSize: '16px',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              transition: 'background-color 0.3s ease',
+            }}
+          >
+            {isMetronomeActive ? 'Stop Metronome' : 'Start Metronome'}
+          </button>
+        </div>
+
+        {/* Metronome tempo control */}
+        <div className="mt-4 flex items-center">
+          {/* Text box for exact tempo */}
+          <input
+            id="tempo-input"
+            type="number"
+            value={tempo}
+            onChange={handleTempoInput}
+            onKeyDown={handleInputKeyDown}
+            min="60"
+            max="200"
+            className="w-24 p-2 border border-gray-300 rounded-md mr-4"
+          />
+
+          {/* Sliding bar */}
+          <input
+            id="tempo-slider"
+            type="range"
+            min="60"
+            max="200"
+            value={tempo}
+            onChange={handleTempoChange}
+            className="w-full"
+          />
+          <span className="ml-2">{tempo} BPM</span>
+        </div>
       </div>
     </div>
   );
