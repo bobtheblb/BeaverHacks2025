@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as OpenSheetMusicDisplay from 'opensheetmusicdisplay';
 import * as Tone from 'tone';
 import Keyboard from '../Keyboard.tsx'; 
+import { GoogleGenAI } from "@google/genai";
 
 import amazing_grace from '../../note_data_jsons/amazing_grace.json';
 import mary from '../../note_data_jsons/mary.json';
@@ -17,8 +18,9 @@ export function SheetMusicOSMD() {
   const [musicXML, setMusicXML] = useState<string | null>(null);
   const osmdContainerRef = useRef<HTMLDivElement>(null);
   const osmdInstance = useRef<OpenSheetMusicDisplay.OpenSheetMusicDisplay | null>(null);
-  const [song, setSong] = useState<string>('twinkle');  // Set default song to 'mary'
-
+  const [song, setSong] = useState<string>(() => {
+    return localStorage.getItem('selectedSong') || 'twinkle';
+  });
   const [isMetronomeActive, setIsMetronomeActive] = useState(false);
   const [isMetronomeActive2, setIsMetronomeActive2] = useState(false);
 
@@ -31,12 +33,83 @@ export function SheetMusicOSMD() {
   const startCoachingTimerRef = useRef(false);
   const iouListRef = useRef([]);
   const noteHistoryRef = useRef([]);
+  const noteHistoryRefOld = useRef([]);
   const [avgIou, setAvgIou] = useState(0.0);
   const [accuracy, setAccuracy] = useState(0.0);
   const [showMetrics, setShowMetrics] = useState(false);
   const [isSongPlaying, setIsSongPlaying] = useState(false); // Track song playback state
   const formattedNotesRef = useRef([]);
+  const formattedNotesRefOld = useRef([]);
   const [numBeats, setNumBeats] = useState(0);
+  const [text, setText] = useState<string[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const chatOutputRef = useRef('');
+
+  const ai = new GoogleGenAI({ apiKey: "AIzaSyB7gXVIWi9Zifw_UFk9wFAACjOWW-C84as" });
+
+  const expectedValues = [
+    { note: 'C4', duration: 500 }, 
+    { note: 'C4', duration: 500 }, 
+    { note: 'G4', duration: 500 }, 
+    { note: 'G4', duration: 500 }, 
+    { note: 'A4', duration: 500 }, 
+    { note: 'A4', duration: 500 }, 
+    { note: 'G4', duration: 1000 },
+    { note: 'F4', duration: 500 }, 
+    { note: 'F4', duration: 500 }, 
+    { note: 'E4', duration: 500 }, 
+    { note: 'E4', duration: 500 }, 
+    { note: 'D4', duration: 500 }, 
+    { note: 'D4', duration: 500 }, 
+    { note: 'C4', duration: 1000 } 
+  ];
+  
+  const actualValues = [
+    { note: 'C4', duration: 500 },
+    { note: 'C4', duration: 600 }, 
+    { note: 'G4', duration: 500 },
+    { note: 'G4', duration: 500 },
+    { note: 'A4', duration: 500 },
+    { note: 'A4', duration: 500 },
+    { note: 'G4', duration: 1000 },
+    { note: 'F4', duration: 500 },
+    { note: 'F4', duration: 450 }, 
+    { note: 'E4', duration: 500 },
+    { note: 'E4', duration: 550 }, 
+    { note: 'D4', duration: 500 }, 
+    { note: 'D4', duration: 500 }, 
+    { note: 'C4', duration: 1000 } 
+  ];
+
+  async function chatFeature() {
+    setIsModalOpen(true);
+    setText("Loading response...");
+    
+    // You can provide the data directly here
+    const myData = `So I'm trying to play a piano piece on a virtual piano, and I've listed the expected values and my actual values, how can I improve? Here are the metrics. Please don't repeat the metrics just give nice feedback. Also compare with last run, which may be empty, don't mention it if it is. Don't do any formatting please. Be really nice like a piano instructor. Also if your previous advice is there, use it to inform you:
+    Expected values: ${JSON.stringify(formattedNotesRef, null, 2)}
+    Actual values: ${JSON.stringify(noteHistoryRef, null, 2)}
+    Old Actual Values from last run: ${JSON.stringify(noteHistoryRefOld, null, 2)}
+    Previous advice: ${chatOutputRef.current}
+    `;
+
+    console.log(myData);
+  
+    getResponse(myData); // Pass the data to the function
+  }
+  
+
+  async function getResponse(data: string) {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: data,  // pass data here
+    });
+  
+    chatOutputRef.current = response;
+
+    console.log(response.text);
+    setText(response.text); // set the response text to display in the modal
+  }
 
   const keyToNoteMap = {
     a: `C${octave}`,
@@ -366,11 +439,14 @@ export function SheetMusicOSMD() {
   const handleFileChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newFile = event.target.value;
     setSelectedFile(event.target.value);
+    localStorage.setItem('selectedSheetMusic', newFile);
+    // console.log(newFile)
 
     // Update song name when file is selected
     const songName = newFile.split('.')[0] // Get the song name from the file name
       .replace('/', '') // Remove the leading slash
     setSong(songName);
+    localStorage.setItem('selectedSong', songName);
   };
 
   // Fetch the music XML file when the selected file changes
@@ -492,6 +568,7 @@ export function SheetMusicOSMD() {
     } else {
       startCoachingTimerRef.current = true
       iouListRef.current = [];
+      noteHistoryRefOld.current = noteHistoryRef.current;
       noteHistoryRef.current = [];
       setAvgIou(0.0);
       setShowMetrics(false);
@@ -670,7 +747,37 @@ export function SheetMusicOSMD() {
           </p>
         </div>
       </div>
+
+      {/* Chat Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-8 rounded-lg max-w-lg w-full max-h-[400px] flex flex-col">
+            <h2 className="text-xl font-semibold mb-4">Gemini response: </h2>
+            <div className="flex-1 overflow-y-auto mb-4">
+              <p>{text}</p>
+            </div>
+            <button
+              onClick={() => setIsModalOpen(false)} // Close modal when clicked
+              className="mt-4 bg-red-500 text-white p-2 rounded-md"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+
+
+      {/* Chat Button */}
+      <button
+        onClick={chatFeature}
+        className="bg-gray-500 text-white h-15 p-2 rounded-md fixed bottom-4 right-4 z-50"
+      >
+        Chat
+      </button>
+
     </div>
+    
   );
 }
 

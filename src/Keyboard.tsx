@@ -11,7 +11,7 @@ function Keyboard({ octave, setOctave }) {
   const white_key_stroke = "black";
   const white_key_stroke_width = 5;
   const white_key_start_x = 150;
-  const white_key_start_y = 20;
+  const white_key_start_y = 50;
 
   const black_key_width = 40;
   const black_key_height = 170;
@@ -19,7 +19,7 @@ function Keyboard({ octave, setOctave }) {
   const black_key_stroke = "black";
   const black_key_stroke_width = 5;
   const black_key_start_x = 150;
-  const black_key_start_y = 20;
+  const black_key_start_y = 50;
   const black_key_xs = [352, 450, 592, 680, 768];
 
   const white_letter_gap_from_key_bottom = 150;
@@ -82,7 +82,7 @@ function Keyboard({ octave, setOctave }) {
         <button style={styles.octaveButton} onClick={() => changeOctave(1)}>+</button>
       </div>
 
-      <Stage width={900} height={400}>
+      <Stage width={900} height={450}>
         <Layer>
           {/* White keys */}
           {Array.from({ length: 8 }).map((_, index) => {
@@ -145,6 +145,38 @@ function Keyboard({ octave, setOctave }) {
               </React.Fragment>
             );
           })}
+
+          {/* Black key legend */}
+          {['w', 'e', 't', 'y', 'u'].map((key, index) => {
+            const x = black_key_xs[index];
+            return (
+              <Text
+                key={`legend-${key}`}
+                text={key}
+                x={x - black_key_width - 100}
+                y={black_key_start_y - 35}
+                fontSize={25}
+                fill="black"
+              />
+            );
+          })}
+
+          {/* Key Labels */}
+          {Object.keys(keyToNoteMap).map((key, index) => {
+            const keyX = white_key_start_x + index * white_key_width;
+            const isWhiteKey = index < 8;
+
+            return (
+              <Text
+                key={`label-${key}`}
+                text={key}
+                x={keyX + white_key_width / 2 - 12} // Adjusting to center the key label
+                y={isWhiteKey ? white_key_start_y + white_key_height + 10 : black_key_start_y + black_key_height + 10}
+                fontSize={25}
+                fill="black"
+              />
+            );
+          })}
         </Layer>
       </Stage>
     </div>
@@ -173,9 +205,6 @@ const styles = {
     borderRadius: '5px',
     margin: '0 10px',
     transition: 'background-color 0.3s',
-  },
-  octaveButtonHover: {
-    backgroundColor: '#45a049',
   },
   octaveText: {
     fontSize: '24px',
