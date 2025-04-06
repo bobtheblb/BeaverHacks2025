@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react'
 
-
-
 function Dash() {
     const [isRunning, setIsRunning] = useState(false);
 
