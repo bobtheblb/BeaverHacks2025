@@ -7,7 +7,7 @@ export function SheetMusicOSMD() {
   // List of sheet music files (you can add more files here)
   const sheetMusicFiles = [
     { label: "Twinkle, Twinkle, Little Star", file: "/twinkle.musicxml" },
-    { label: "Happy Birthday", file: "/happy.musicxml" },
+    { label: "When the Saints go Marching in", file: "/saints.musicxml" },
     { label: "Mary Had a Little Lamb", file: "/mary.musicxml" },
     { label: "Itsy Bitsy Spider", file: "/spider.musicxml" },
 
