@@ -13,6 +13,9 @@ export function SheetMusicOSMD() {
   const [tempo, setTempo] = useState(120); // Default tempo for metronome
   const [heldNotes, setHeldNotes] = useState<string[]>([]);
   const [octave, setOctave] = useState(4); // Default octave
+  const [isCoachingActive, setIsCoachingActive] = useState(false)
+  const [coachingStart, setCoachingStart] = useState(0)
+  const coachingStartRef = useRef<number | null>(null);
 
   const keyToNoteMap = {
     a: `C${octave}`,
@@ -68,14 +71,57 @@ export function SheetMusicOSMD() {
     { note: 'D4', duration: '2n' },
   ]
 
+  function calculateErrorMetrics(start, end) {
+    var true_note;
+    for (let i = 0; i < twinkle.length; i++) {
+      let note = twinkle[i];
+      if (start < note.time) {
+        true_note = twinkle[i-1];
+        break;
+      }
+    }
+
+    const true_start = true_note.time
+    const true_end = true_note.time + true_note.durationMs
+
+    console.log(`true start: ${true_start}, true end: ${true_end}`)
+    console.log(`start: ${start}, end: ${end}`)
+
+    // ###
+    //  ###
+    //
+    // ####
+    //  ##
+    //
+    //  ###
+    // ###
+    //
+    //  ##
+    // ####
+
+    var intersection;
+    var union;
+    if (start >= true_start) {
+      intersection = Math.min(true_end - start, end - start)
+      union = Math.max(end - true_start, true_end - true_start)
+    } else {
+      intersection = Math.min(end - true_start, true_end - true_start)
+      union = Math.max(true_end - start, end - start)
+    }
+
+    const iou = intersection / union
+    return iou
+  }
+
   // Calculate time for each note and include in the array
   let currentTime = 0;
   const millisecondsPerBeat = (60 / tempo) * 1000; // BPM to milliseconds per beat conversion
 
   twinkle.forEach(note => {
-    const noteDuration = note.duration === '4n' ? 1 / 4 : (note.duration === '2n' ? 1 / 2 : 0);
+    const noteDuration = note.duration === '4n' ? 1 : (note.duration === '2n' ? 2 : 0);
     note.time = currentTime;  // Store the cumulative time for the note in milliseconds
     currentTime += noteDuration * millisecondsPerBeat; // Update the cumulative time in milliseconds
+    note.durationMs = noteDuration * millisecondsPerBeat
   });
 
   console.log(twinkle);
@@ -168,7 +214,18 @@ export function SheetMusicOSMD() {
         const start = pressStartTimes.current[key];
         if (start) {
           const duration = Date.now() - start;
+          const coachingStartTime = coachingStartRef.current ? Date.now() - coachingStartRef.current : 0;
+          console.log(`now: ${Date.now()}`)
+          console.log(`coaching start: ${coachingStartRef.current}`)
+          console.log(`poopy2: ${coachingStartTime}`)
           console.log(`Pressed '${key}' for ${duration} milliseconds`);
+
+          const coachingEndTime = coachingStartTime + duration
+
+          const iou = calculateErrorMetrics(coachingStartTime, coachingEndTime)
+
+          console.log(`iou: ${iou}`)
+
           delete pressStartTimes.current[key];
         }
 
@@ -197,6 +254,20 @@ export function SheetMusicOSMD() {
       setIsMetronomeActive(true);
     }
   };
+
+  const toggleCoaching = () => {
+    if (isCoachingActive) {
+      coachingStartRef.current = null
+      setIsCoachingActive(false);
+    } else {
+      coachingStartRef.current = Date.now()
+      setIsCoachingActive(true);
+    }
+  };
+
+  useEffect(() => {
+    console.log(`coaching start: ${coachingStart}`)
+  }, [coachingStart]);
 
   const handleTempoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newTempo = Math.min(200, Math.max(60, Number(event.target.value)));
@@ -263,8 +334,6 @@ export function SheetMusicOSMD() {
           Play Song
         </button>
       </div>
-
-
         {/* Sheet music viewer */}
         <div className="mt-4 w-full h-[80vh]">
           {musicXML ? (
@@ -326,6 +395,23 @@ export function SheetMusicOSMD() {
             className="w-full"
           />
           <span className="ml-2">{tempo} BPM</span>
+        </div>
+        <div className="mt-4 flex items-center">
+          <button
+            onClick={toggleCoaching}
+            style={{
+              backgroundColor: isCoachingActive ? '#ff6347' : '#32cd32',
+              color: 'white',
+              padding: '10px 20px',
+              fontSize: '16px',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              transition: 'background-color 0.3s ease',
+            }}
+          >
+            {isCoachingActive ? 'Stop Coaching' : 'Start Coaching'}
+          </button>
         </div>
       </div>
     </div>
