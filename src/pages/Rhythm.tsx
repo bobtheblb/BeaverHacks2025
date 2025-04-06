@@ -44,7 +44,11 @@ const Rhythm: React.FC = () => {
   // When switching to Measure view, generate a new measure and reset measure state
   useEffect(() => {
     if (activeTab === 'measure') {
-      generateNewMeasure();
+
+      if (!measureXML) {
+        generateNewMeasure();
+      }
+
       setMeasureCountdown(null);
       setMeasureActive(false);
       setMeasureFinished(false);
@@ -112,10 +116,13 @@ const Rhythm: React.FC = () => {
   // Countdown effect: decrement every second until reaching 0, then activate measure mode.
   useEffect(() => {
     if (measureCountdown === null) return;
+
+    const secondsPerBeat = 60 / bpm;
+
     if (measureCountdown > 0) {
       const timer = setTimeout(() => {
         setMeasureCountdown((prev) => (prev !== null ? prev - 1 : null));
-      }, 1000);
+      }, secondsPerBeat * 1000); // Adjust countdown speed based on BPM
       return () => clearTimeout(timer);
     } else {
       // Countdown finished; now activate measure mode.
@@ -399,19 +406,6 @@ const Rhythm: React.FC = () => {
               Generate New Measure
             </button>
           )}
-        </div>
-
-        {/* GAME VIEW TAB */}
-        <input
-          type="radio"
-          name="my_tabs_3"
-          className="tab"
-          aria-label="Game View"
-          checked={activeTab === 'game'}
-          onChange={() => setActiveTab('game')}
-        />
-        <div className="tab-content bg-base-100 border-base-300 p-6">
-          Tab content 3
         </div>
       </div>
 
