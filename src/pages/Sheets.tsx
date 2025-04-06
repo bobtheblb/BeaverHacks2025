@@ -16,6 +16,10 @@ export function SheetMusicOSMD() {
   const [isCoachingActive, setIsCoachingActive] = useState(false)
   const [coachingStart, setCoachingStart] = useState(0)
   const coachingStartRef = useRef<number | null>(null);
+  const iouListRef = useRef([]);
+  const noteHistoryRef = useRef([]);
+  const [avgIou, setAvgIou] = useState(0.0);
+  const [showMetrics, setShowMetrics] = useState(false);
 
   const keyToNoteMap = {
     a: `C${octave}`,
@@ -98,8 +102,6 @@ export function SheetMusicOSMD() {
     for (let i = true_i; i <= next_i; i++) {
       true_notes.push(twinkle[i]);
     }
-
-    console.log(`true notes poop: ${true_notes}`);
 
     let ious = [];
     let weights = [];
@@ -271,11 +273,24 @@ export function SheetMusicOSMD() {
           console.log(`poopy2: ${coachingStartTime}`)
           console.log(`Pressed '${key}' for ${duration} milliseconds`);
 
+          noteHistoryRef.current.push({
+            note: note,
+            duration: duration,
+            time: coachingStartTime
+          });
+
+          console.log(`note history: ${noteHistoryRef.current}`);
+  
           const coachingEndTime = coachingStartTime + duration
 
           const iou = calculateErrorMetrics(coachingStartTime, coachingEndTime)
 
-          console.log(`iou: ${iou}`)
+          iouListRef.current.push(iou);
+          const sumIou = iouListRef.current.reduce((partialSum, a) => partialSum + a, 0);
+          const avgIou = sumIou / iouListRef.current.length;
+          setAvgIou(avgIou);
+          console.log(`iou list: ${iouListRef.current}`);
+          console.log(`avg iou: ${avgIou}`);
 
           delete pressStartTimes.current[key];
         }
@@ -308,10 +323,15 @@ export function SheetMusicOSMD() {
 
   const toggleCoaching = () => {
     if (isCoachingActive) {
-      coachingStartRef.current = null
+      coachingStartRef.current = null;
+      setShowMetrics(true);
       setIsCoachingActive(false);
     } else {
       coachingStartRef.current = Date.now()
+      iouListRef.current = [];
+      noteHistoryRef.current = [];
+      setAvgIou(0.0);
+      setShowMetrics(false);
       setIsCoachingActive(true);
     }
   };
@@ -463,6 +483,9 @@ export function SheetMusicOSMD() {
           >
             {isCoachingActive ? 'Stop Coaching' : 'Start Coaching'}
           </button>
+          <p>
+            {showMetrics ? avgIou : ''}
+          </p>
         </div>
       </div>
     </div>
