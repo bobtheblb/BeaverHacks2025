@@ -1,17 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useAnimation, useMotionValue } from 'framer-motion';
+import * as Tone from 'tone';
 
 interface Note {
   id: number;
   left: number;
   top: number;
   size: number;
+  pitch: string;
 }
 
 const NUM_NOTES = 20;
 const MIN_RADIUS = 20;
 const MAX_RADIUS = 45;
 const MIN_DISTANCE = 8;
+
+const synth = new Tone.Synth().toDestination();
+
+const PITCHES = ["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"];
 
 const QuarterNotes: React.FC = () => {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -30,8 +36,9 @@ const QuarterNotes: React.FC = () => {
           const left = 50 + radius * Math.cos(angle);
           const top = 50 + radius * Math.sin(angle);
           const size = 0.8 + Math.random() * 0.7;
+          const pitch = PITCHES[Math.floor(Math.random() * PITCHES.length)];
 
-          const newNote: Note = { id: i, left, top, size };
+          const newNote: Note = { id: i, left, top, size, pitch };
 
           const isValid = newNotes.every(note => {
             const dx = note.left - newNote.left;
@@ -51,7 +58,9 @@ const QuarterNotes: React.FC = () => {
           const left = 50 + radius * Math.cos(angle);
           const top = 50 + radius * Math.sin(angle);
           const size = 0.8 + Math.random() * 0.7;
-          newNotes.push({ id: i, left, top, size });
+          const pitch = PITCHES[Math.floor(Math.random() * PITCHES.length)];
+
+          newNotes.push({ id: i, left, top, size, pitch});
         }
       }
 
@@ -80,6 +89,11 @@ const DraggableNote: React.FC<DraggableNoteProps> = ({ note }) => {
   const controls = useAnimation();
   const x = useMotionValue(0);
   const y = useMotionValue(0);
+
+  const handleClick = async () => {
+    await Tone.start(); // Ensure audio context is started
+    synth.triggerAttackRelease(note.pitch, "8n");
+  };
 
   const startFloat = () => {
     controls.start({
@@ -135,6 +149,7 @@ const DraggableNote: React.FC<DraggableNoteProps> = ({ note }) => {
         onDragEnd={returnToOrigin}
         whileHover={{ scale: note.size * 1.2 }}
         whileDrag={{ scale: note.size * 1.3 }}
+        onClick={handleClick}
       />
     </div>
   );
