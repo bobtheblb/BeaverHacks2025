@@ -32,21 +32,23 @@ const Rhythm: React.FC = () => {
   const beatTimesRef = useRef<number[]>([]);
   const pulseControls: AnimationControls = useAnimation();
 
-  // Used in Measure view: generate a new music measure
+  // Generate a new music measure
   const generateNewMeasure = (): void => {
-    const measure = generateRandomMeasure(); // like [1, 0.5, 0.5, 1]
-    setMeasureDurations(measure); // Save the structure for beat scheduling
+    const measure = generateRandomMeasure(); // e.g., [1, 0.5, 0.5, 1]
+    setMeasureDurations(measure);
     console.log('Generated measure:', measure);
     const xml = generateRandomMusicXML(measure);
     setMeasureXML(xml);
   };
 
-  
-
   // When switching to Measure view, generate a new measure and reset measure state
   useEffect(() => {
     if (activeTab === 'measure') {
-      generateNewMeasure();
+
+      if (!measureXML) {
+        generateNewMeasure();
+      }
+
       setMeasureCountdown(null);
       setMeasureActive(false);
       setMeasureFinished(false);
@@ -55,6 +57,14 @@ const Rhythm: React.FC = () => {
       setMeasureFeedbackArray([]);
     }
   }, [activeTab]);
+
+  // Countdown metronome tick effect (plays a tick on each countdown update)
+  useEffect(() => {
+    if (activeTab !== 'measure' || measureCountdown === null || measureCountdown <= 0)
+      return;
+    const countdownSynth = new Tone.MembraneSynth().toDestination();
+    countdownSynth.triggerAttackRelease("C2", "8n");
+  }, [measureCountdown, activeTab]);
 
   // ================================
   // PRACTICE VIEW: Metronome & Tapping
@@ -90,7 +100,7 @@ const Rhythm: React.FC = () => {
   // ================================
   // MEASURE VIEW: Countdown and 4-Beat Measure
   // ================================
-  // When the user clicks the Measure view “Start” button, reset state and begin the countdown.
+  // When the user clicks the “Start” button in Measure view, reset state and begin the countdown.
   const startMeasure = async (): Promise<void> => {
     await Tone.start();
     // Reset measure state
@@ -103,13 +113,16 @@ const Rhythm: React.FC = () => {
     setMeasureFeedbackArray([]);
   };
 
-  // Countdown effect: decrement every second until reaching 0, then activate the measure beats.
+  // Countdown effect: decrement every second until reaching 0, then activate measure mode.
   useEffect(() => {
     if (measureCountdown === null) return;
+
+    const secondsPerBeat = 60 / bpm;
+
     if (measureCountdown > 0) {
       const timer = setTimeout(() => {
         setMeasureCountdown((prev) => (prev !== null ? prev - 1 : null));
-      }, 1000);
+      }, secondsPerBeat * 1000); // Adjust countdown speed based on BPM
       return () => clearTimeout(timer);
     } else {
       // Countdown finished; now activate measure mode.
@@ -117,17 +130,17 @@ const Rhythm: React.FC = () => {
     }
   }, [measureCountdown]);
 
-  // Once measureActive is true, schedule exactly 4 beats (one per quarter note).
+  // Once measureActive is true, schedule exactly 4 beats with no additional delay.
   useEffect(() => {
-    if (activeTab !== 'measure' || !measureActive || measureDurations.length === 0) return;
+    if (activeTab !== 'measure' || !measureActive || measureDurations.length === 0)
+      return;
   
     Tone.Transport.bpm.value = bpm;
     const synth = new Tone.MembraneSynth().toDestination();
-    const startTime = Tone.now() + 0.1;
+    const startTime = Tone.now(); // Start immediately with no delay
     const newExpectedBeats: number[] = [];
   
     let cumulativeBeats = 0;
-  
     for (const duration of measureDurations) {
       const beatTime = startTime + cumulativeBeats * (60 / bpm);
       newExpectedBeats.push(beatTime);
@@ -150,6 +163,26 @@ const Rhythm: React.FC = () => {
     }
   }, [activeTab, measureActive, bpm, pulseControls, measureDurations]);
 
+  // Reset measure exercise once the activity is over.
+  const resetMeasure = (): void => {
+    setMeasureCountdown(null);
+    setMeasureActive(false);
+    setMeasureFinished(false);
+    setMeasureExpectedBeatTimes([]);
+    setMeasureUserTaps([]);
+    setMeasureFeedbackArray([]);
+    generateNewMeasure();
+  };
+
+  const replayMeasure = (): void => {
+    setMeasureCountdown(null);
+    setMeasureActive(false);
+    setMeasureFinished(false);
+    setMeasureExpectedBeatTimes([]);
+    setMeasureUserTaps([]);
+    setMeasureFeedbackArray([]);
+  };
+
   // ================================
   // Global Spacebar Listener for Tapping
   // ================================
@@ -157,12 +190,11 @@ const Rhythm: React.FC = () => {
     const handleSpace = (e: KeyboardEvent): void => {
       if (e.code !== 'Space') return;
 
-      // Measure view: record tap only if measure mode is active, not finished, and there is an expected beat available.
+      // Measure view: record tap only if measure mode is active, not finished, and an expected beat is available.
       if (activeTab === 'measure' && measureActive && !measureFinished) {
-        // Only allow up to 4 taps.
         if (measureUserTaps.length < measureExpectedBeatTimes.length) {
           const now = Tone.now();
-          const index = measureUserTaps.length; // match taps in order
+          const index = measureUserTaps.length;
           const expectedTime = measureExpectedBeatTimes[index];
           const errorMs = (now - expectedTime) * 1000;
           const rating = Math.abs(errorMs) <= 150 ? '🎯 Great!' : '❌ Miss';
@@ -172,7 +204,7 @@ const Rhythm: React.FC = () => {
           setMeasureFeedbackArray((prev) => [...prev, feedbackMsg]);
           setMeasureUserTaps((prev) => [...prev, now]);
 
-          // When 4 taps have been recorded, mark measure as finished.
+          // When the required number of taps is reached, mark the measure as finished.
           if (index + 1 === measureExpectedBeatTimes.length) {
             setMeasureFinished(true);
           }
@@ -239,7 +271,9 @@ const Rhythm: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen text-center px-4">
-      <h1 className="text-4xl md:text-6xl font-borel font-extrabold mb-6">rhythm trainer</h1>
+      <h1 className="text-4xl md:text-6xl font-borel font-extrabold mb-6">
+        rhythm trainer
+      </h1>
 
       <div className="tabs tabs-lift mb-4 w-sm sm:w-xl md:w-3xl">
         {/* PRACTICE TAB */}
@@ -303,24 +337,26 @@ const Rhythm: React.FC = () => {
           type="radio"
           name="my_tabs_3"
           className="tab"
-          aria-label="Measure View"
+          aria-label="Measure Reading"
           checked={activeTab === 'measure'}
           onChange={() => setActiveTab('measure')}
         />
         <div className="tab-content bg-base-100 border-base-300 p-6">
           <h2 className="text-xl font-bold mb-2">Measure Reading Activity</h2>
+          
+          {/* Measure */}
           {measureXML ? (
             <OSMDRenderer musicXML={measureXML} />
           ) : (
             <p className="text-gray-500 italic">Loading measure...</p>
           )}
 
-          {/* Measure View Controls */}
+          {/* Measure Controls */}
           {activeTab === 'measure' && (
             <>
               {/* Show the Start button if the measure isn’t running */}
-              {!measureActive && measureCountdown === null && (
-                <button className="btn btn-primary mt-4" onClick={startMeasure}>
+              {!measureActive && measureCountdown === null && !measureFinished && (
+                <button className="btn btn-primary mt-4 mr-5" onClick={startMeasure}>
                   Start
                 </button>
               )}
@@ -330,39 +366,55 @@ const Rhythm: React.FC = () => {
               )}
               {/* Prompt during the active 4-beat measure */}
               {measureActive && !measureFinished && (
-                <div className="mt-4 text-xl font-bold">Tap the space bar for each beat!</div>
+                <div className="mt-4 text-xl font-bold">
+                  Tap the space bar for each beat!
+                </div>
               )}
               {/* Live feedback for each beat */}
               {measureFeedbackArray.length > 0 && (
                 <div className="mt-4">
                   {measureFeedbackArray.map((msg, idx) => (
-                    <p key={idx} className="text-xl">{msg}</p>
+                    <p key={idx} className="text-xl">
+                      {msg}
+                    </p>
                   ))}
+                </div>
+              )}
+              {/* Reset button after exercise is over */}
+              {measureFinished && (
+                <div>
+                  <button
+                    className="btn btn-secondary mt-4 mr-5"
+                    onClick={resetMeasure}
+                  >
+                    Reset Exercise
+                  </button>
+
+                  <button
+                  className="btn btn-secondary mt-4 mr-5"
+                  onClick={replayMeasure}
+                  >
+                  Replay Exercise
+                  </button>
                 </div>
               )}
             </>
           )}
 
-          <button className="btn btn-outline mt-4" onClick={generateNewMeasure}>
-            Generate New Measure
-          </button>
+          {!measureActive && !measureFinished && measureCountdown === null && (
+            <button className="btn btn-outline mt-4" onClick={generateNewMeasure}>
+              Generate New Measure
+            </button>
+          )}
         </div>
-
-        {/* GAME VIEW TAB */}
-        <input
-          type="radio"
-          name="my_tabs_3"
-          className="tab"
-          aria-label="Game View"
-          checked={activeTab === 'game'}
-          onChange={() => setActiveTab('game')}
-        />
-        <div className="tab-content bg-base-100 border-base-300 p-6">Tab content 3</div>
       </div>
 
       {/* Navigation */}
       <div className="mt-8">
-        <button className="btn btn-neutral px-6 py-3 text-lg" onClick={() => navigate('/')}>
+        <button
+          className="btn btn-neutral px-6 py-3 text-lg"
+          onClick={() => navigate('/')}
+        >
           Back Home
         </button>
       </div>
