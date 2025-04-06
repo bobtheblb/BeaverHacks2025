@@ -66,9 +66,7 @@ const Rhythm: React.FC = () => {
     countdownSynth.triggerAttackRelease("C2", "8n");
   }, [measureCountdown, activeTab]);
 
-  // ================================
   // PRACTICE VIEW: Metronome & Tapping
-  // ================================
   useEffect(() => {
     if (!started) return;
 
@@ -97,9 +95,8 @@ const Rhythm: React.FC = () => {
     };
   }, [started, bpm, pulseControls]);
 
-  // ================================
+
   // MEASURE VIEW: Countdown and 4-Beat Measure
-  // ================================
   // When the user clicks the “Start” button in Measure view, reset state and begin the countdown.
   const startMeasure = async (): Promise<void> => {
     await Tone.start();
@@ -163,7 +160,8 @@ const Rhythm: React.FC = () => {
     }
   }, [activeTab, measureActive, bpm, pulseControls, measureDurations]);
 
-  // Reset measure exercise once the activity is over.
+  
+  // Resets 
   const resetMeasure = (): void => {
     setMeasureCountdown(null);
     setMeasureActive(false);
@@ -183,9 +181,8 @@ const Rhythm: React.FC = () => {
     setMeasureFeedbackArray([]);
   };
 
-  // ================================
+
   // Global Spacebar Listener for Tapping
-  // ================================
   useEffect(() => {
     const handleSpace = (e: KeyboardEvent): void => {
       if (e.code !== 'Space') return;
@@ -248,9 +245,8 @@ const Rhythm: React.FC = () => {
     started,
   ]);
 
-  // ================================
+
   // Handlers for BPM and Tab toggles
-  // ================================
   const handleBpmChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setBpm(Number(e.target.value));
   };
