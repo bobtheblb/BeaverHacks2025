@@ -7,29 +7,28 @@ const App = () => {
   const [tempo, setTempo] = useState(120);
   const [noteTimerStart, setNoteTimerStart] = useState(null);
   const [heldNotes, setHeldNotes] = useState([]);
+  const [octave, setOctave] = useState(4);
 
   const keyToNoteMap = {
-    'a': 'C4',
-    'w': 'C#4',
-    's': 'D4',
-    'e': 'D#4',
-    'd': 'E4',
-    'f': 'F4',
-    't': 'F#4',
-    'g': 'G4',
-    'y': 'G#4',
-    'h': 'A4',
-    'u': 'A#4',
-    'j': 'B4',
-    'k': 'C5',
+    'a': `C${octave}`,
+    'w': `C#${octave}`,
+    's': `D${octave}`,
+    'e': `D#${octave}`,
+    'd': `E${octave}`,
+    'f': `F${octave}`,
+    't': `F#${octave}`,
+    'g': `G${octave}`,
+    'y': `G#${octave}`,
+    'h': `A${octave}`,
+    'u': `A#${octave}`,
+    'j': `B${octave}`,
+    'k': `C${octave + 1}`,
   };
 
-  // Metronome setup
   const metronome = new Tone.MembraneSynth().toDestination();
   const transport = Tone.Transport;
   transport.bpm.value = tempo;
 
-  // Store synths and press start times per key
   const activeSynths = useRef({});
   const pressStartTimes = useRef({});
 
@@ -78,7 +77,7 @@ const App = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [noteTimerStart]);
+  }, [noteTimerStart, octave]);
 
   const toggleMetronome = () => {
     if (isMetronomeActive) {
@@ -96,14 +95,14 @@ const App = () => {
   };
 
   useEffect(() => {
-    transport.scheduleRepeat(() => {
-      metronome.triggerAttackRelease('C1', '8n');
+    transport.scheduleRepeat((time) => {
+      metronome.triggerAttackRelease('C2', '8n');
     }, '4n');
   }, []);
 
   return (
-    <div>
-      <Keyboard />
+    <div className="flex flex-col items-center justify-center min-h-screen text-center px-4">
+      <Keyboard octave={octave} setOctave={setOctave} /> {/* Pass octave and setOctave as props */}
 
       <h1>Press keys to play notes</h1>
       <p>
@@ -113,40 +112,24 @@ const App = () => {
       </p>
       <p>Use the following keys to play:</p>
       <ul>
-        <li>A = C4</li>
-        <li>S = D4</li>
-        <li>D = E4</li>
-        <li>F = F4</li>
-        <li>G = G4</li>
-        <li>H = A4</li>
-        <li>J = B4</li>
-        <li>K = C5</li>
+        <li>A = C{octave}</li>
+        <li>S = D{octave}</li>
+        <li>D = E{octave}</li>
+        <li>F = F{octave}</li>
+        <li>G = G{octave}</li>
+        <li>H = A{octave}</li>
+        <li>J = B{octave}</li>
+        <li>K = C{octave + 1}</li>
       </ul>
 
       <pre>
         {`
   Key:  a  a  g  g  h  h  g
-  Notes: C4 C4 G4 G4 A4 A4 G4
+  Notes: C${octave} C${octave} G${octave} G${octave} A${octave} A${octave} G${octave}
   Lyrics: Twinkle, twinkle, little star
 
   Key:  f  f  d  d  s  s  a
-  Notes: F4 F4 E4 E4 D4 D4 C4
-  Lyrics: How I wonder what you are
-
-  Key:  g  g  f  f  d  d  s
-  Notes: G4 G4 F4 F4 E4 E4 D4
-  Lyrics: Up above the world so high
-
-  Key:  g  g  f  f  d  d  s
-  Notes: G4 G4 F4 F4 E4 E4 D4
-  Lyrics: Like a diamond in the sky
-
-  Key:  a  a  g  g  h  h  g
-  Notes: C4 C4 G4 G4 A4 A4 G4
-  Lyrics: Twinkle, twinkle, little star
-
-  Key:  f  f  d  d  s  s  a
-  Notes: F4 F4 E4 E4 D4 D4 C4
+  Notes: F${octave} F${octave} E${octave} E${octave} D${octave} D${octave} C${octave}
   Lyrics: How I wonder what you are
         `}
       </pre>
@@ -180,12 +163,6 @@ const App = () => {
           max="200"
         />
       </div>
-
-      {noteTimerStart && (
-        <div>
-          <p>Timer started at: {new Date(noteTimerStart).toLocaleTimeString()}</p>
-        </div>
-      )}
     </div>
   );
 };
