@@ -58,20 +58,20 @@ const Home = () => {
       
       <div className="flex flex-row gap-5 items-center justify-center mt-4">
        
-        <div className="card bg-base-100 w-96 shadow-sm">
+        <div className="card bg-base-100 w-96 shadow-sm min-h-58">
           <div className="card-body">
-            <h2 className="card-title">Practice Room 🎹</h2>
-            <p>Learn children’s songs and play along using our interactive piano.</p>
+            <h2 className="card-title">Piano Room</h2>
+            <p className="text-left">Learn songs by using our interactive piano and get personalized feedback from Google Gemini.</p>
             <div className="card-actions justify-end">
               <button className="btn btn-primary" onClick={() => navigate('/sheets')}>Enter</button>
             </div>
           </div>
         </div>
 
-        <div className="card bg-base-100 w-96 shadow-sm">
+        <div className="card bg-base-100 w-96 shadow-sm min-h-58">
           <div className="card-body">
-            <h2 className="card-title">Rhythm Trainer 🥁</h2>
-            <p>Improve your timing and coordination with fun rhythm challenges.</p>
+            <h2 className="card-title">Rhythm Trainer</h2>
+            <p className="text-left">Improve your timing and coordination with fun rhythm challenges.</p>
             <div className="card-actions justify-end">
               <button className="btn btn-primary" onClick={() => navigate('/rhythm')}>Enter</button>
             </div>
