@@ -26,6 +26,14 @@ export function SheetMusicOSMD() {
   const [tempo, setTempo] = useState(120); // Default tempo for metronome
   const [heldNotes, setHeldNotes] = useState<string[]>([]);
   const [octave, setOctave] = useState(4); // Default octave
+  const [isCoachingActive, setIsCoachingActive] = useState(false)
+  const [coachingStart, setCoachingStart] = useState(0)
+  const coachingStartRef = useRef<number | null>(null);
+  const iouListRef = useRef([]);
+  const noteHistoryRef = useRef([]);
+  const [avgIou, setAvgIou] = useState(0.0);
+  const [accuracy, setAccuracy] = useState(0.0);
+  const [showMetrics, setShowMetrics] = useState(false);
   const [isSongPlaying, setIsSongPlaying] = useState(false); // Track song playback state
   const [text, setText] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -111,6 +119,7 @@ export function SheetMusicOSMD() {
   interface Note {
     note: string;
     duration: string;
+    durationMs: string;
     time?: string; // Optional, if you want to add time calculations
   }
 
@@ -142,14 +151,13 @@ export function SheetMusicOSMD() {
             duration = '2n'; // Half rest
         }
         
-
         const restDuration = duration === '8n' ? 1 / 8 :
                              duration === '4n' ? 1 / 4 :
                              duration === '2n' ? 1 / 2 : 1;
         
         const time = currentTime1;
-        currentTime1 += restDuration * millisecondsPerBeat1;  // Update the time
-        formattedNotes.push({ note: 'rest', duration, time: `${time}` });
+        currentTime1 += restDuration * 4 * millisecondsPerBeat1;  // Update the time
+        formattedNotes.push({ note: 'rest', duration, time: `${time}`, durationMs: `${restDuration * 4 * millisecondsPerBeat1}`});
     }else {
       // Handle regular notes
       const note = `${item.pitch.step}${item.pitch.octave}`;
@@ -180,31 +188,144 @@ export function SheetMusicOSMD() {
       } else if (item.type === 'dotted-half') {
         duration = '2n.';
         noteDuration = (1 / 2) * 1.5;
-    }
-  
-      // Optional: Override noteDuration based on specific duration string
-      if (item.duration === "60") {
-          noteDuration *= 1;
-      } else if (item.duration === "120") {
-          noteDuration *= 2;
-      } else if (item.duration === "180") {
-          noteDuration *= 4;
-      } else if (item.duration === "240") {
-          noteDuration *= 8;
       }
-  
+
       // Calculate time
       const time = currentTime1;
-      currentTime1 += noteDuration * millisecondsPerBeat1;
+      currentTime1 += noteDuration * 4 * millisecondsPerBeat1;
   
       // Push to formattedNotes
-      formattedNotes.push({ note, duration, time: `${time}` });
-  }
-  
-});
+      formattedNotes.push({ note, duration, time: `${time}`, durationMs: `${noteDuration * 4 * millisecondsPerBeat1}` });
+    }
+  });
 
 
   console.log(formattedNotes);
+
+  function calculateIou(start, end) {
+    var true_note;
+    var true_i;
+    for (let i = 0; i < formattedNotes.length; i++) {
+      let note = formattedNotes[i];
+      if (start < note.time) {
+        true_note = formattedNotes[i-1];
+        true_i = i-1
+        break;
+      }
+    }
+
+    var next_note;
+    var next_i;
+    for (let i = 0; i < formattedNotes.length; i++) {
+      let note = formattedNotes[i];
+      if (end < note.time) {
+        next_note = formattedNotes[i-1];
+        next_i = i-1
+        break;
+      }
+    }
+
+    let true_notes = [];
+    for (let i = true_i; i <= next_i; i++) {
+      true_notes.push(formattedNotes[i]);
+    }
+
+    let ious = [];
+    let weights = [];
+    for (let i = 0; i < true_notes.length; i++) {
+      let true_note = true_notes[i];
+      let true_start = true_note.time;
+      console.log(`true note time: ${true_note.time}, duration: ${true_note.durationMs}`)
+      let true_end = parseFloat(true_note.time) + parseFloat(true_note.durationMs);
+      let intersection = 0;
+      let union = 0;
+      let weight = 0;
+
+      console.log(`true start: ${true_start}, true_end: ${true_end}`)
+      console.log(`start: ${start}, end: ${end}`)
+
+      if ((start >= true_start) && (end <= true_end)) {
+        intersection = end - start;
+        union = true_end - true_start;
+        weight = 1;
+      } else if ((true_start <= start) && (end >= true_end)) {
+        intersection = true_end - start;
+        union = end - true_start;
+        weight = (true_end - start) / (end - start);
+      } else if ((true_start >= start) && (true_end <= end)) {
+        intersection = true_end - true_start;
+        union = end - start;
+        weight = (true_end - true_start) / (end - start);
+      } else if ((true_start >= start) && (true_end >= end)) {
+        intersection = end - true_start;
+        union = true_end - start;
+        weight = (end - true_start) / (end - start);
+      }
+      ious.push(intersection / union);
+      weights.push(weight);
+    }
+
+    let weighted_iou = 0;
+    for (let i = 0; i < ious.length; i++) {
+      weighted_iou += (ious[i] * weights[i])
+    }
+
+    return weighted_iou
+    // New cases:
+    // ###
+    //  #
+    //
+    // ###
+    //  ###
+    // 
+    //  #
+    // ###
+    //
+    //  ###
+    // ###
+
+    // Old cases:
+    // ###
+    //  ###
+    //
+    // ####
+    //  ##
+    //
+    //  ###
+    // ###
+    //
+    //  ##
+    // ####
+  }
+
+  function calculateAccuracy(noteHistory) {
+    let count_correct = 0;
+    let count_total = 0;
+    let current_j = 0;
+    for (let i = 0; i < noteHistory.length; i++) {
+      let true_curr_note = formattedNotes[current_j].note;
+      if (current_j < formattedNotes.length) {
+        if (noteHistory[i].note == true_curr_note) {
+          count_correct += 1;
+          count_total += 1;
+          current_j = current_j + 1;
+        } else {
+          count_total += 1;
+        }
+      } else {
+        count_total += 1;
+      }
+    }
+
+    return (count_correct / count_total);
+  }
+  
+  // Calculate time for each note and include in the array
+  let currentTime = 0;
+  const millisecondsPerBeat = (60 / tempo) * 1000; // BPM to milliseconds per beat conversion
+
+  // Function to play the song
+
 
   const playSong = async () => {
     setIsSongPlaying(true);
@@ -352,7 +473,31 @@ export function SheetMusicOSMD() {
         const start = pressStartTimes.current[key];
         if (start) {
           const duration = Date.now() - start;
+          const coachingStartTime = coachingStartRef.current ? Date.now() - coachingStartRef.current : 0;
+          console.log(`now: ${Date.now()}`)
+          console.log(`coaching start: ${coachingStartRef.current}`)
+          console.log(`poopy2: ${coachingStartTime}`)
           console.log(`Pressed '${key}' for ${duration} milliseconds`);
+
+          noteHistoryRef.current.push({
+            note: note,
+            duration: duration,
+            time: coachingStartTime
+          });
+
+          console.log(`note history: ${noteHistoryRef.current}`);
+  
+          const coachingEndTime = coachingStartTime + duration
+
+          const iou = calculateIou(coachingStartTime, coachingEndTime)
+
+          iouListRef.current.push(iou);
+          const sumIou = iouListRef.current.reduce((partialSum, a) => partialSum + a, 0);
+          const avgIou = sumIou / iouListRef.current.length;
+          setAvgIou(avgIou);
+          console.log(`iou list: ${iouListRef.current}`);
+          console.log(`avg iou: ${avgIou}`);
+
           delete pressStartTimes.current[key];
         }
 
@@ -381,6 +526,26 @@ export function SheetMusicOSMD() {
       setIsMetronomeActive(true);
     }
   };
+
+  const toggleCoaching = () => {
+    if (isCoachingActive) {
+      coachingStartRef.current = null;
+      setAccuracy(calculateAccuracy(noteHistoryRef.current));
+      setShowMetrics(true);
+      setIsCoachingActive(false);
+    } else {
+      coachingStartRef.current = Date.now()
+      iouListRef.current = [];
+      noteHistoryRef.current = [];
+      setAvgIou(0.0);
+      setShowMetrics(false);
+      setIsCoachingActive(true);
+    }
+  };
+
+  useEffect(() => {
+    console.log(`coaching start: ${coachingStart}`)
+  }, [coachingStart]);
 
   const handleTempoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newTempo = Math.min(200, Math.max(60, Number(event.target.value)));
@@ -521,6 +686,32 @@ export function SheetMusicOSMD() {
             onChange={handleTempoChange}
             className="w-full"
           />
+        </div>
+        <div className="mt-4 flex items-center">
+          <button
+            onClick={toggleCoaching}
+            style={{
+              backgroundColor: isCoachingActive ? '#ff6347' : '#32cd32',
+              color: 'white',
+              padding: '10px 20px',
+              fontSize: '16px',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              transition: 'background-color 0.3s ease',
+            }}
+          >
+            {isCoachingActive ? 'Stop Coaching' : 'Start Coaching'}
+          </button>
+          <p>
+            {showMetrics ? avgIou : ''}
+          </p>
+          <p>
+            poop
+          </p>
+          <p>
+            {showMetrics ? accuracy : ''}
+          </p>
         </div>
       </div>
 
