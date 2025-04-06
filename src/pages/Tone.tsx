@@ -1,5 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as Tone from 'tone';
+import { Stage, Layer, Rect, Text } from 'react-konva';
+import Keyboard from '../Keyboard.tsx';
+
 
 const App = () => {
   const [synth] = useState(new Tone.Synth().toDestination());
@@ -73,17 +76,19 @@ const App = () => {
 
   const handleTempoChange = (event) => {
     setTempo(event.target.value);
-    transport.bpm.value = event.target.value;
+    transport.bpm.value = event.target.value;  // Update the transport BPM
   };
 
   useEffect(() => {
     transport.scheduleRepeat(() => {
-      metronome.triggerAttackRelease('C1', '8n');
+      metronome.triggerAttackRelease('C1', '8n');  // Play metronome tick sound
     }, '4n');
   }, []);
 
   return (
     <div>
+      <Keyboard />
+
       <h1>Press keys to play notes</h1>
       <p>{isPlaying ? `Note ${currentNote} is playing...` : 'Press and hold a key to play a note'}</p>
       <p>Use the following keys to play:</p>
@@ -162,6 +167,7 @@ const App = () => {
         </div>
       )}
     </div>
+
   );
 };
 
