@@ -3,26 +3,24 @@ import * as OpenSheetMusicDisplay from 'opensheetmusicdisplay';
 
 export function SheetMusicOSMD() {
   const [selectedFile, setSelectedFile] = useState<string>("/twinkle.musicxml");
+  const [musicXML, setMusicXML] = useState<string | null>(null);
+  const osmdContainerRef = useRef<HTMLDivElement>(null);
+  const osmdInstance = useRef<OpenSheetMusicDisplay.OpenSheetMusicDisplay | null>(null); 
 
-  // List of sheet music files (you can add more files here)
   const sheetMusicFiles = [
     { label: "Twinkle, Twinkle, Little Star", file: "/twinkle.musicxml" },
     { label: "When the Saints go Marching in", file: "/saints.musicxml" },
     { label: "Mary Had a Little Lamb", file: "/mary.musicxml" },
     { label: "Itsy Bitsy Spider", file: "/spider.musicxml" },
-
   ];
 
-  const [musicXML, setMusicXML] = useState<string | null>(null);
-  const osmdContainerRef = useRef<HTMLDivElement>(null); // Ref to the container for OSMD
-
-  // Handle selection change
+  // Handle selection change (dropdown)
   const handleFileChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedFile(event.target.value);
   };
 
+  // Fetch the music XML file when the selected file changes
   useEffect(() => {
-    // Fetch the music XML file when the selected file changes
     fetch(selectedFile)
       .then((response) => {
         if (!response.ok) {
@@ -42,6 +40,7 @@ export function SheetMusicOSMD() {
       const osmd = new OpenSheetMusicDisplay.OpenSheetMusicDisplay(osmdContainerRef.current);
       osmd.load(musicXML).then(() => {
         osmd.render();
+        osmdInstance.current = osmd; 
       });
     }
   }, [musicXML]);
