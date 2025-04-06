@@ -11,6 +11,8 @@ import twinkle from '../../note_data_jsons/twinkle.json';
 import saints from '../../note_data_jsons/saints.json';
 import spider from '../../note_data_jsons/spider.json';
 
+import gemini from '../../public/gemini.png';
+
 export function SheetMusicOSMD() {
   const [selectedFile, setSelectedFile] = useState<string>(() => {
     return localStorage.getItem('selectedSheetMusic') || '/twinkle.musicxml';
@@ -573,6 +575,9 @@ export function SheetMusicOSMD() {
       setAvgIou(0.0);
       setShowMetrics(false);
       setIsCoachingActive(true);
+
+      // setIsSongPlaying(true);
+      // playSong();
     }
   };
 
@@ -612,7 +617,7 @@ export function SheetMusicOSMD() {
   return (
     <div className="max-w-full mx-auto px-4 py-8 flex flex-col sm:flex-row">
       {/* Sheet music container */}
-      <div className="w-full sm:w-1/2 mb-4 sm:mb-0">
+      <div className="w-full sm:w-1/2 mb-4 sm:mb-0 pr-4">
         <div className="mb-4">
           <label htmlFor="sheet-music-dropdown" className="block text-lg font-semibold mb-2">
             Select Sheet Music:
@@ -634,15 +639,7 @@ export function SheetMusicOSMD() {
         <div className="mb-4 flex items-center space-x-4">
           <button
             onClick={isSongPlaying ? stopSong : playSong}
-            style={{
-              backgroundColor: isSongPlaying ? '#ff6347' : '#32cd32',
-              color: 'white',
-              padding: '10px 20px',
-              fontSize: '16px',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-            }}
+            className={`btn btn-primary ${isMetronomeActive ? 'btn-error' : 'btn-primary'}`}
           >
             {isSongPlaying ? 'Stop Song' : 'Play Song'}
           </button>
@@ -671,33 +668,24 @@ export function SheetMusicOSMD() {
       </div>
 
       {/* Control panel (keyboard, metronome, etc.) */}
-      <div className="w-full sm:w-1/2 overflow-hidden">
-        <Keyboard octave={octave} setOctave={setOctave} />
-
+      <div className="w-full sm:w-1/2 overflow-hidden pl-4">
         {/* Metronome toggle */}
-        <div>
-          <button
-            onClick={toggleMetronome}
-            style={{
-              backgroundColor: isMetronomeActive ? '#ff6347' : '#32cd32',
-              color: 'white',
-              padding: '10px 20px',
-              fontSize: '16px',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              transition: 'background-color 0.3s ease',
-            }}
-          >
-            {isMetronomeActive ? 'Stop Metronome' : 'Start Metronome'}
-          </button>
-
-          <p>selected song: {song}</p>
-        </div>
+      
 
         {/* Metronome tempo control */}
-        <div className="mt-4 flex items-center">
+        <div className="flex items-center">
           {/* Text box for exact tempo */}
+          
+          {/* Sliding bar */}
+          <input
+            id="tempo-slider"
+            type="range"
+            min="60"
+            max="200"
+            value={tempo}
+            onChange={handleTempoChange}
+            className="w-full mr-10"
+          />
           <input
             id="tempo-input"
             type="number"
@@ -709,43 +697,73 @@ export function SheetMusicOSMD() {
             className="w-24 p-2 border border-gray-300 rounded-md mr-4"
           />
 
-          {/* Sliding bar */}
-          <input
-            id="tempo-slider"
-            type="range"
-            min="60"
-            max="200"
-            value={tempo}
-            onChange={handleTempoChange}
-            className="w-full"
-          />
         </div>
+
+        <div className='mt-4 flex items-center'>
+          <button
+            onClick={toggleMetronome}
+            className={`btn ${isMetronomeActive ? 'btn-error' : 'btn-primary'} `}
+            >
+            {isMetronomeActive ? 'Stop Metronome' : 'Start Metronome'}
+          </button>
+
+        </div>
+
+        <Keyboard octave={octave} setOctave={setOctave} />
+
         <div className="mt-4 flex items-center">
           <button
             onClick={toggleCoaching}
-            style={{
-              backgroundColor: isCoachingActive ? '#ff6347' : '#32cd32',
-              color: 'white',
-              padding: '10px 20px',
-              fontSize: '16px',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              transition: 'background-color 0.3s ease',
-            }}
-          >
+            className={`btn ${isCoachingActive ? 'btn-error' : 'btn-primary'} `}
+            >
             {isCoachingActive ? 'Stop Coaching' : 'Start Coaching'}
-          </button>
-          <p>
-            {showMetrics ? avgIou : ''}
-          </p>
-          <p>
-            poop
-          </p>
-          <p>
-            {showMetrics ? accuracy : ''}
-          </p>
+            </button>
         </div>
+
+        <div className="space-y-4 mt-4">
+          <div className="flex flex-col items-start space-y-2">
+            {showMetrics ? (
+              <div>
+                <div className="text-lg font-semibold">Rhythm Metrics:</div>
+                <div className="text-xl text-gray-700">
+                  {(avgIou && !isNaN(avgIou)) ? (avgIou * 100).toFixed(2) + '%' : '0%'}
+                </div>
+              </div>
+            ) : !isCoachingActive ? (
+              <div className="text-xl text-gray-700">
+                Please complete a coaching session to view your rhythm metrics and note accuracy.
+              </div>
+            ) : (
+              <div>
+                <div className="text-xl text-gray-700">You got this!</div>
+                <div className="text-lg font-semibold">Rhythm Metrics:</div>
+                <div className="text-xl text-gray-700">
+                  {(avgIou && !isNaN(avgIou)) ? (avgIou * 100).toFixed(2) + '%' : '0%'}
+                </div>
+                <div className="text-lg font-semibold">Note Accuracy:</div>
+                <div className="text-xl text-gray-700">
+                  {(accuracy && !isNaN(accuracy)) ? (accuracy * 100).toFixed(2) + '%' : '0%'}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col items-start space-y-2">
+            {showMetrics && (
+              <div>
+                <div className="text-lg font-semibold">Note Accuracy:</div>
+                <div className="text-xl text-gray-700">
+                  {showMetrics ? 
+                    (isNaN(accuracy) ? '0.00%' : (accuracy * 100).toFixed(2) + '%') 
+                  : ''}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+
+
       </div>
 
       {/* Chat Modal */}
@@ -771,9 +789,10 @@ export function SheetMusicOSMD() {
       {/* Chat Button */}
       <button
         onClick={chatFeature}
-        className="bg-gray-500 text-white h-15 p-2 rounded-md fixed bottom-4 right-4 z-50"
-      >
-        Chat
+        className="bg-gray-700 p-2 rounded-full fixed bottom-4 right-4 z-50 flex justify-center items-center cursor-pointer shadow-lg transition-transform transform hover:scale-105"
+        >
+        <img src="/gemini_icon.png" alt="Chat" className="h-10 w-10" />
+
       </button>
 
     </div>
