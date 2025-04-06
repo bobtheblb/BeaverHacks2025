@@ -523,6 +523,7 @@ export function SheetMusicOSMD() {
   
           const coachingEndTime = coachingStartTime + duration
 
+          setAccuracy(calculateAccuracy(noteHistoryRef.current));
           const iou = calculateIou(coachingStartTime, coachingEndTime)
 
           iouListRef.current.push(iou);
