@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as OpenSheetMusicDisplay from 'opensheetmusicdisplay';
 import * as Tone from 'tone';
-import Keyboard from '../Keyboard.tsx'; // Assuming you have a Keyboard component
+import Keyboard from '../Keyboard.tsx'; 
 
 export function SheetMusicOSMD() {
   const [selectedFile, setSelectedFile] = useState<string>('/twinkle.musicxml');
@@ -66,7 +66,7 @@ export function SheetMusicOSMD() {
     { note: 'E4', duration: '4n' },
     { note: 'E4', duration: '4n' },
     { note: 'D4', duration: '2n' },
-  ]
+  ];
 
   // Calculate time for each note and include in the array
   let currentTime = 0;
@@ -85,19 +85,34 @@ export function SheetMusicOSMD() {
     // Ensure Tone.js is started
     await Tone.start();
 
-    // Create a synth to play the notes
-    const synth = new Tone.Synth().toDestination();
+    // Play the metronome for 4 beats
+    const metronome = new Tone.MembraneSynth().toDestination();
+    let beatCount = 0;
+    const metronomeInterval = setInterval(() => {
+      metronome.triggerAttackRelease('C1', '8n');
+      beatCount++;
+      if (beatCount === 5) {
+        // clearInterval(metronomeInterval); // Stop the metronome after 4 beats
+        startSong(); // Start playing the song after 4 beats
+      }
+    }, Tone.Time('4n').toMilliseconds()); // Metronome interval (4 beats)
 
-    // Play the song
-    for (let i = 0; i < twinkle.length; i++) {
-      const { note, duration } = twinkle[i];
-      synth.triggerAttackRelease(note, duration);
-      await new Promise(resolve => setTimeout(resolve, Tone.Time(duration).toMilliseconds()));
-    }
+    // Prevent starting the song until the metronome has clicked 4 times
+    const startSong = async () => {
+      // Create a synth to play the notes
+      const synth = new Tone.Synth().toDestination();
+
+      // Play the song
+      for (let i = 0; i < twinkle.length; i++) {
+        const { note, duration } = twinkle[i];
+        synth.triggerAttackRelease(note, duration);
+        await new Promise(resolve => setTimeout(resolve, Tone.Time(duration).toMilliseconds()));
+      }
+      clearInterval(metronomeInterval);
+    };
   };
 
   // Metronome setup
-  const metronome = new Tone.MembraneSynth().toDestination();
   const transport = Tone.Transport;
   transport.bpm.value = tempo;
 
@@ -219,12 +234,6 @@ export function SheetMusicOSMD() {
     }
   };
 
-  useEffect(() => {
-    transport.scheduleRepeat(() => {
-      metronome.triggerAttackRelease('C1', '8n');
-    }, '4n');
-  }, []);
-
   return (
     <div className="max-w-full mx-auto px-4 py-8 flex flex-col sm:flex-row overflow-hidden">
       {/* Sheet music container */}
@@ -248,22 +257,21 @@ export function SheetMusicOSMD() {
         </div>
 
         <div className="mb-4">
-        <button
-          onClick={playSong}
-          style={{
-            backgroundColor: '#32cd32',
-            color: 'white',
-            padding: '10px 20px',
-            fontSize: '16px',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-          }}
-        >
-          Play Song
-        </button>
-      </div>
-
+          <button
+            onClick={playSong}
+            style={{
+              backgroundColor: '#32cd32',
+              color: 'white',
+              padding: '10px 20px',
+              fontSize: '16px',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+            }}
+          >
+            Play Song
+          </button>
+        </div>
 
         {/* Sheet music viewer */}
         <div className="mt-4 w-full h-[80vh]">
