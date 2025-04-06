@@ -1,22 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import * as Tone from 'tone';
+import Keyboard from '../Keyboard.tsx';
 
 const App = () => {
-  const [synth] = useState(new Tone.Synth().toDestination());
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [pressStartTime, setPressStartTime] = useState(null);
-  const [currentNote, setCurrentNote] = useState('');
   const [isMetronomeActive, setIsMetronomeActive] = useState(false);
-  const [tempo, setTempo] = useState(120); 
+  const [tempo, setTempo] = useState(120);
   const [noteTimerStart, setNoteTimerStart] = useState(null);
+  const [heldNotes, setHeldNotes] = useState([]);
 
   const keyToNoteMap = {
     'a': 'C4',
+    'w': 'C#4',
     's': 'D4',
+    'e': 'D#4',
     'd': 'E4',
     'f': 'F4',
+    't': 'F#4',
     'g': 'G4',
+    'y': 'G#4',
     'h': 'A4',
+    'u': 'A#4',
     'j': 'B4',
     'k': 'C5',
   };
@@ -26,14 +29,21 @@ const App = () => {
   const transport = Tone.Transport;
   transport.bpm.value = tempo;
 
+  // Store synths and press start times per key
+  const activeSynths = useRef({});
+  const pressStartTimes = useRef({});
+
   useEffect(() => {
     const handleKeyDown = (event) => {
-      const note = keyToNoteMap[event.key];
-      if (note && !isPlaying) {
-        setIsPlaying(true);
-        setPressStartTime(Date.now());
-        setCurrentNote(note);
+      const key = event.key.toLowerCase();
+      const note = keyToNoteMap[key];
+
+      if (note && !activeSynths.current[key]) {
+        const synth = new Tone.Synth().toDestination();
         synth.triggerAttack(note);
+        activeSynths.current[key] = synth;
+        pressStartTimes.current[key] = Date.now();
+        setHeldNotes((prev) => [...prev, note]);
 
         if (noteTimerStart === null) {
           setNoteTimerStart(Date.now());
@@ -42,13 +52,22 @@ const App = () => {
     };
 
     const handleKeyUp = (event) => {
-      const note = keyToNoteMap[event.key];
-      if (note && isPlaying) {
-        const pressDuration = Date.now() - pressStartTime;
-        console.log(`Pressed '${event.key}' for ${pressDuration} milliseconds`);
+      const key = event.key.toLowerCase();
+      const note = keyToNoteMap[key];
+      const synth = activeSynths.current[key];
 
-        setIsPlaying(false);
+      if (note && synth) {
+        const start = pressStartTimes.current[key];
+        if (start) {
+          const duration = Date.now() - start;
+          console.log(`Pressed '${key}' for ${duration} milliseconds`);
+          delete pressStartTimes.current[key];
+        }
+
         synth.triggerRelease();
+        delete activeSynths.current[key];
+
+        setHeldNotes((prev) => prev.filter((n) => n !== note));
       }
     };
 
@@ -59,7 +78,7 @@ const App = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isPlaying, pressStartTime, synth, noteTimerStart]);
+  }, [noteTimerStart]);
 
   const toggleMetronome = () => {
     if (isMetronomeActive) {
@@ -84,8 +103,14 @@ const App = () => {
 
   return (
     <div>
+      <Keyboard />
+
       <h1>Press keys to play notes</h1>
-      <p>{isPlaying ? `Note ${currentNote} is playing...` : 'Press and hold a key to play a note'}</p>
+      <p>
+        {heldNotes.length > 0
+          ? `Currently playing: ${heldNotes.join(', ')}`
+          : 'Press and hold a key to play a note'}
+      </p>
       <p>Use the following keys to play:</p>
       <ul>
         <li>A = C4</li>
@@ -95,6 +120,7 @@ const App = () => {
         <li>G = G4</li>
         <li>H = A4</li>
         <li>J = B4</li>
+        <li>K = C5</li>
       </ul>
 
       <pre>
@@ -122,7 +148,7 @@ const App = () => {
   Key:  f  f  d  d  s  s  a
   Notes: F4 F4 E4 E4 D4 D4 C4
   Lyrics: How I wonder what you are
-          `}
+        `}
       </pre>
 
       <div>
@@ -155,7 +181,6 @@ const App = () => {
         />
       </div>
 
-      {/* Display the timer */}
       {noteTimerStart && (
         <div>
           <p>Timer started at: {new Date(noteTimerStart).toLocaleTimeString()}</p>
